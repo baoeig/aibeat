@@ -1,0 +1,711 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/cn",
+      "destination": "/cn/index"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/about/positioning",
+      "destination": "/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/agentbeat/case-studies",
+      "destination": "/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/coding-agent/attack-examples",
+      "destination": "/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/coding-agent/attack-patterns",
+      "destination": "/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/coding-agent/broad-codex-report",
+      "destination": "/agentbeat/evidence",
+      "permanent": true
+    },
+    {
+      "source": "/coding-agent/coverage",
+      "destination": "/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/capability-sources",
+      "destination": "/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/configuration-model",
+      "destination": "/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/multi-model-checks",
+      "destination": "/promptbeat/judgment",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/preflight-checks",
+      "destination": "/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/risk-taxonomy",
+      "destination": "/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/concepts/target-scenario-seed",
+      "destination": "/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/datasets/catalog",
+      "destination": "/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/datasets/collections",
+      "destination": "/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/datasets/harmbench",
+      "destination": "/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/datasets/overview",
+      "destination": "/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/datasets/risk-taxonomy",
+      "destination": "/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/codex-quickstart",
+      "destination": "/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/overview",
+      "destination": "/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/scenario-driven-evaluation",
+      "destination": "/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/getting-started/skills",
+      "destination": "/promptbeat/skills",
+      "permanent": true
+    },
+    {
+      "source": "/providers/overview",
+      "destination": "/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/reference/api-service",
+      "destination": "/reference/cli",
+      "permanent": true
+    },
+    {
+      "source": "/reference/yaml",
+      "destination": "/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/reports/comprehensive-reports",
+      "destination": "/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/reports/report-schema",
+      "destination": "/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/reports/result-artifacts",
+      "destination": "/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/target-lab/architecture",
+      "destination": "/agentbeat/observation-model",
+      "permanent": true
+    },
+    {
+      "source": "/target-lab/inspect-and-adapters",
+      "destination": "/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/targets/agent-configuration-examples",
+      "destination": "/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/targets/agent-targets",
+      "destination": "/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/targets/codex-sdk",
+      "destination": "/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/targets/provider-files",
+      "destination": "/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/targets/typical-agent-apps",
+      "destination": "/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/use-cases/enterprise-datasets",
+      "destination": "/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/use-cases/model-vendor-comparison",
+      "destination": "/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/use-cases/post-upgrade-regression",
+      "destination": "/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/use-cases/pre-launch-acceptance",
+      "destination": "/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/use-cases/rag-agent-boundary",
+      "destination": "/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/about/positioning",
+      "destination": "/cn/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/agentbeat/case-studies",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/coding-agent/attack-examples",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/coding-agent/attack-patterns",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/coding-agent/broad-codex-report",
+      "destination": "/cn/agentbeat/evidence",
+      "permanent": true
+    },
+    {
+      "source": "/cn/coding-agent/coverage",
+      "destination": "/cn/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/concepts/capability-sources",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/cn/concepts/configuration-model",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/cn/concepts/multi-model-checks",
+      "destination": "/cn/promptbeat/judgment",
+      "permanent": true
+    },
+    {
+      "source": "/cn/concepts/preflight-checks",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/cn/concepts/risk-taxonomy",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/concepts/target-scenario-seed",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/cn/datasets/catalog",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/cn/datasets/collections",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/cn/datasets/harmbench",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/datasets/overview",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/cn/datasets/risk-taxonomy",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/getting-started/codex-quickstart",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/cn/getting-started/overview",
+      "destination": "/cn/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/getting-started/scenario-driven-evaluation",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/cn/providers/overview",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/cn/reference/api-service",
+      "destination": "/cn/reference/cli",
+      "permanent": true
+    },
+    {
+      "source": "/cn/reference/yaml",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/cn/reports/comprehensive-reports",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/cn/reports/report-schema",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/cn/reports/result-artifacts",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/cn/target-lab/architecture",
+      "destination": "/cn/agentbeat/observation-model",
+      "permanent": true
+    },
+    {
+      "source": "/cn/target-lab/inspect-and-adapters",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/cn/targets/agent-configuration-examples",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/cn/targets/agent-targets",
+      "destination": "/cn/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/targets/codex-sdk",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/cn/targets/provider-files",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/cn/targets/typical-agent-apps",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/cn/use-cases/enterprise-datasets",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/use-cases/model-vendor-comparison",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/use-cases/post-upgrade-regression",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/use-cases/pre-launch-acceptance",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/cn/use-cases/rag-agent-boundary",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh",
+      "destination": "/cn",
+      "permanent": true
+    },
+    {
+      "source": "/zh/about/core-concepts",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/zh/about/overview",
+      "destination": "/cn/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/about/positioning",
+      "destination": "/cn/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/about/promptbeat-vs-agentbeat",
+      "destination": "/cn/about/promptbeat-vs-agentbeat",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/adapters",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/case-studies",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/evidence",
+      "destination": "/cn/agentbeat/evidence",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/observation-model",
+      "destination": "/cn/agentbeat/observation-model",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/overview",
+      "destination": "/cn/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/quickstart",
+      "destination": "/cn/agentbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/agentbeat/scenarios",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/coding-agent/attack-examples",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/coding-agent/attack-patterns",
+      "destination": "/cn/agentbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/coding-agent/broad-codex-report",
+      "destination": "/cn/agentbeat/evidence",
+      "permanent": true
+    },
+    {
+      "source": "/zh/coding-agent/coverage",
+      "destination": "/cn/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/concepts/capability-sources",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/zh/concepts/configuration-model",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/concepts/multi-model-checks",
+      "destination": "/cn/promptbeat/judgment",
+      "permanent": true
+    },
+    {
+      "source": "/zh/concepts/preflight-checks",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/zh/concepts/risk-taxonomy",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/concepts/target-scenario-seed",
+      "destination": "/cn/about/core-concepts",
+      "permanent": true
+    },
+    {
+      "source": "/zh/datasets/catalog",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/zh/datasets/collections",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/zh/datasets/harmbench",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/datasets/overview",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/zh/datasets/risk-taxonomy",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/getting-started/codex-quickstart",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/getting-started/overview",
+      "destination": "/cn/about/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/getting-started/scenario-driven-evaluation",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/getting-started/skills",
+      "destination": "/cn/promptbeat/skills",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/dataset-loop",
+      "destination": "/cn/promptbeat/dataset-loop",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/execution",
+      "destination": "/cn/promptbeat/execution",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/generation",
+      "destination": "/cn/promptbeat/generation",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/judgment",
+      "destination": "/cn/promptbeat/judgment",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/overview",
+      "destination": "/cn/promptbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/quickstart",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/reports",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/zh/promptbeat/scenarios",
+      "destination": "/cn/promptbeat/scenarios",
+      "permanent": true
+    },
+    {
+      "source": "/zh/providers/overview",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/reference/api-service",
+      "destination": "/cn/reference/cli",
+      "permanent": true
+    },
+    {
+      "source": "/zh/reference/cli",
+      "destination": "/cn/reference/cli",
+      "permanent": true
+    },
+    {
+      "source": "/zh/reference/yaml",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/reports/comprehensive-reports",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/zh/reports/report-schema",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/zh/reports/result-artifacts",
+      "destination": "/cn/promptbeat/reports",
+      "permanent": true
+    },
+    {
+      "source": "/zh/target-lab/architecture",
+      "destination": "/cn/agentbeat/observation-model",
+      "permanent": true
+    },
+    {
+      "source": "/zh/target-lab/inspect-and-adapters",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/zh/targets/agent-configuration-examples",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/zh/targets/agent-targets",
+      "destination": "/cn/agentbeat/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/targets/codex-sdk",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/zh/targets/provider-files",
+      "destination": "/cn/promptbeat/quickstart",
+      "permanent": true
+    },
+    {
+      "source": "/zh/targets/typical-agent-apps",
+      "destination": "/cn/agentbeat/adapters",
+      "permanent": true
+    },
+    {
+      "source": "/zh/use-cases/enterprise-datasets",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/use-cases/model-vendor-comparison",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/use-cases/post-upgrade-regression",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/use-cases/pre-launch-acceptance",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    },
+    {
+      "source": "/zh/use-cases/rag-agent-boundary",
+      "destination": "/cn/use-cases/overview",
+      "permanent": true
+    }
+  ],
+  "headers": [
+    {
+      "source": "/downloads/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}

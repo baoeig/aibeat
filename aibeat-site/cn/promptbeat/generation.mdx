@@ -1,0 +1,75 @@
+---
+title: PromptBeat 生成
+description: 理解当前两条生成路径，以及何时会发生 Provider 调用。
+---
+
+
+PromptBeat 目前有两条行为不同的生成路径。明确区分它们，可以避免意外模型调用和错误文档。
+
+## 1. 本地 Case 预览
+
+```bash
+promptbeat generate \
+  --config examples/llm-basic/promptbeat.yaml \
+  --count 5 \
+  --output artifacts/cases.json
+```
+
+该命令调用 Go `GenerateCases` 应用路径，读取 Project，根据已配置的 Scenario 与 Seed 构建 Case，应用每个 Scenario 的数量上限，并写入 JSON。
+
+<CardGroup cols={3}>
+  <Card title="远程调用" icon="wifi">该命令不会发起</Card>
+  <Card title="Target 调用" icon="bullseye">无</Card>
+  <Card title="输出" icon="file-code">本地 Case JSON</Card>
+</CardGroup>
+
+在任何付费或可能产生副作用的评测前，用它检查范围。
+
+## 2. 外部后端红队生成
+
+完整 Project 流水线使用外部评测后端：
+
+```bash
+promptbeat run \
+  --config examples/llm-basic/promptbeat.yaml \
+  --output-dir artifacts/run
+```
+
+其中的生成阶段使用编译后的配置运行后端的红队生成器。该阶段可能调用已配置的 Generator Provider；后续评测阶段会调用已配置的 Target，也可能使用已配置的 Judge。
+
+<CardGroup cols={3}>
+  <Card title="远程调用" icon="wifi">取决于已配置 Provider</Card>
+  <Card title="Target 调用" icon="bullseye">评测阶段会调用</Card>
+  <Card title="输出" icon="file-code">后端 YAML 与运行产物</Card>
+</CardGroup>
+
+<Warning>
+  先做本地预览。运行 `run` 前，请检查 Provider endpoint、模型名、并发、delay、`num_tests` 与每条 Scenario。完整流水线可能产生费用，并把测试内容发送给第三方服务。
+</Warning>
+
+## 生成输入
+
+| 输入 | 作用 |
+|---|---|
+| Target | 模型/Prompt endpoint 与 capability |
+| Scenario | 风险与预期响应边界 |
+| Seed | 构造 probe 的源材料 |
+| Generator Provider | 外部后端红队生成使用的模型 |
+| Backend 选项 | 测试数量、输出路径、并发、delay、语言 |
+
+## 保持产物可审查
+
+- 使用稳定的 Scenario 与 Seed ID。
+- 把生成文件写入有界的 artifact 目录。
+- 发送到敏感 Target 前先审查生成 Prompt。
+- Credential 只保存在环境变量中。
+- 记录复现运行所需的 project commit 与 Provider 配置。
+
+## Dataset 生成
+
+`dataset build-version` 与 `dataset build-cycle` 可以构建更大的 candidate 和回归产物。它们不同于小规模本地预览命令，并可能调用外部后端生成与评测。见 [Dataset 闭环](/cn/promptbeat/dataset-loop)。
+
+<CardGroup cols={2}>
+  <Card title="运行评测" icon="play" href="/cn/promptbeat/execution" />
+  <Card title="构建 Dataset" icon="database" href="/cn/promptbeat/dataset-loop" />
+</CardGroup>

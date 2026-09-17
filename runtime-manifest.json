@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "release": {
-    "version": "0.3-agentbeat-preview",
+    "version": "0.4.0",
     "releaseBaseUrl": "https://github.com/tophant-ai/aibeat/releases/download",
     "checksumSuffix": ".sha256",
     "products": {
@@ -23,7 +23,7 @@
       },
       "linux-x64": {
         "file": "node-v22.22.2-linux-x64.tar.gz",
-        "sha256": "978a635eef872fa68beae09f0aad0bbbae6757e444da80b570964a97e62a3"
+        "sha256": "978978a635eef872fa68beae09f0aad0bbbae6757e444da80b570964a97e62a3"
       },
       "windows-x64": {
         "file": "node-v22.22.2-win-x64.zip",

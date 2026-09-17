@@ -3,13 +3,20 @@ name: promptbeat-debug-run
 description: Use when Promptbeat validate, config inspect, generate, run, eval, report, provider-file loading, environment variables, working_dir, promptfoo, or coding-agent runtime execution fails.
 ---
 
-# Promptbeat Debug Run
+# PromptBeat Debug Run
 
 ## Overview
 
 Diagnose the failing boundary first: project config, provider override, generated
 promptfoo YAML, target runtime, promptfoo execution, result parsing, or report
 input.
+
+Start with read-only inspection. Do not rerun an evaluation, download datasets,
+change credentials or invoke an agent runtime without explicit user approval.
+Never ask for or print secret values. For a first no-key check, use
+`examples/bootstrap/promptbeat.yaml`; the llm-basic project needs provider
+variables even for validation. Legacy coding-agent recipes are not a new
+AgentBeat quickstart; its public adapter preview does not implement `eval-run`.
 
 ## Triage Table
 

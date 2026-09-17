@@ -1,0 +1,52 @@
+---
+title: Choose by use case
+description: Match PromptBeat or AgentBeat to the evaluation question you need to answer.
+---
+
+
+The same AI application may contain both a model boundary and an agent boundary. Choose the product by the question and evidence you need, not by the application label.
+
+## Model and prompt questions
+
+<CardGroup cols={2}>
+  <Card title="Red-team a model response" icon="shield-halved" href="/promptbeat/quickstart">
+    Test prompt injection, jailbreak, unsafe content, refusals, and policy boundaries with PromptBeat's complete evaluation pipeline.
+  </Card>
+  <Card title="Compare an upgrade" icon="code-compare" href="/promptbeat/execution">
+    Re-run the same scenarios and datasets after a model, prompt, or policy change. Compare response-scoped results on the same inputs.
+  </Card>
+</CardGroup>
+
+## Agent behavior questions
+
+<CardGroup cols={2}>
+  <Card title="Check an HTTP Agent response" icon="network-wired" href="/agentbeat/quickstart">
+    Use AgentBeat L1 when the final response is the available black-box signal. No Evidence SDK is required.
+  </Card>
+  <Card title="Verify tools or state" icon="microscope" href="/agentbeat/observation-model">
+    Add L2 only when the Target declares and returns runtime Evidence. Add L3 when an independent Controller can reset, snapshot, and verify environment state.
+  </Card>
+</CardGroup>
+
+## Common decisions
+
+| Question | Product | Evidence boundary |
+|---|---|---|
+| Did a model follow a prompt injection? | PromptBeat | Provider request/response and configured assertions |
+| Did a prompt or policy update regress refusal behavior? | PromptBeat | Repeated cases and normalized evaluation results |
+| Did an Agent complete the task safely? | AgentBeat | L1 response, with metrics qualified by available Evidence |
+| Did an Agent call an unauthorized tool? | AgentBeat | L2 tool Evidence, if declared and observed |
+| Did an Agent modify protected state? | AgentBeat | L3 independent before/after and native verification |
+| Do I need both response and action coverage? | Both, independently | Keep each result attached to its own runtime and evidence scope |
+
+## What not to infer
+
+- A safe model response does not prove an Agent made no unsafe tool call.
+- Missing L2 Evidence does not prove a tool was or was not used.
+- A Judge score does not override an authoritative L3 native security failure.
+- Running PromptBeat does not prepare or authorize an AgentBeat run.
+
+<CardGroup cols={2}>
+  <Card title="PromptBeat scenarios" icon="list-check" href="/promptbeat/scenarios" />
+  <Card title="AgentBeat AgentCase" icon="file-code" href="/agentbeat/scenarios" />
+</CardGroup>

@@ -1,0 +1,115 @@
+---
+title: AgentBeat Adapter 与 SDK
+description: 通过默认 HTTP 协议接入 Agent，并按需使用 JavaScript 或 Python Evidence helper。
+---
+
+
+AgentBeat 的主要接入方式是一组小型 HTTP 契约。SDK 只是构建 Target 边界与收集 L2 Evidence 的可选 helper，不是另一套评测引擎。框架接线方式与最新离线 Adapter Kit 见 [SDK 接入](/cn/agentbeat/sdk-integration)。
+
+## 默认 Connector
+
+Go Core 把 `business-http-json-v1` 注册为声明式 HTTP Connector。
+
+| 路由 | 是否必需 | 职责 |
+|---|---|---|
+| `GET /healthz` | Deployment 健康检查使用 | 报告 Target 是否就绪 |
+| `POST /v1/agent/invocations` | L1/L2/L3 | 接收一条 `target-invocation-v1` 任务并返回最终响应 |
+| `GET /v1/evidence/{run_id}` | L2/L3 可选 | 返回同一 run 的 `target-evidence-v1` 消息和工具事件 |
+
+Connector 拒绝 redirect，限制响应大小，检查 schema/run/case 绑定，并要求非空最终输出。Endpoint 与 header 来自所选 Registry Deployment。
+
+[查看完整 L1 请求与 Registry 示例 →](/cn/agentbeat/quickstart)
+
+## L1 无需 SDK
+
+任何服务都可以直接实现 HTTP 契约。Agent 只会收到可信任务文本和评测端管理的关联 metadata；Case 中的攻击字段、预期结果、Judge rubric、endpoint 与 credential 不会进入业务请求。
+
+```text
+AgentBeat Go Core                 Customer Target
+──────────────────                ───────────────
+已注册 endpoint       ── POST ──▶ /v1/agent/invocations
+run_id + case_id                  现有 Agent 逻辑
+可信任务              ◀─ JSON ── final_response
+```
+
+## JavaScript SDK
+
+<span className="aibeat-status-badge aibeat-status-badge--optional">可选集成</span>
+
+`agentbeat-sdk-js` 提供 Target server 与有界 Evidence collector：
+
+```javascript
+import { createTargetServer } from "agentbeat-sdk/node";
+
+const server = createTargetServer({
+  targetId: "target-my-agent",
+  auth: targetBearerToken,
+  evidence: { source: "my-agent", observedChannels: ["messages", "tools"] },
+  async invoke({ input, observe }) {
+    const result = await myExistingAgent(input.text);
+    observe?.message({ role: "assistant", text: result.answer });
+    return { finalResponse: result.answer };
+  },
+});
+
+server.listen(8091, "0.0.0.0");
+```
+
+各 package 的职责：
+
+- `agentbeat-sdk`：`EvidenceCollector`、有界存储、Evidence 构造；
+- `agentbeat-sdk/node`：Target HTTP server 与 bearer-token helper；
+- `agentbeat-sdk/adapters/codex-app-server`：把 notification 投影为 Evidence；
+- `agentbeat-sdk/legacy`：只用于兼容，新接入不要使用。
+
+## Python SDK
+
+<span className="aibeat-status-badge aibeat-status-badge--optional">可选集成</span>
+
+`agentbeat-sdk-py` 承担相同的 Target-side 窄职责：
+
+```python
+from agentbeat_sdk import create_target_server
+
+
+def invoke(context):
+    answer = my_existing_agent(context.text)
+    if context.observe is not None:
+        context.observe.message(role="assistant", text=answer)
+    return {"final_response": answer}
+
+
+server = create_target_server(
+    target_id="target-my-agent",
+    auth=target_bearer_token,
+    invoke=invoke,
+    evidence={"source": "my-agent", "observed_channels": ["messages", "tools"]},
+)
+server.serve_forever()
+```
+
+Python package 还提供 `LangGraphObserver`，把已完成的 stream update 投影到可选 collector；它不会替代 LangGraph model、tool、checkpoint 或 callback。
+
+## L2 Evidence 边界
+
+可选 collector 生成有界、脱敏的 `target-evidence-v1` 文档，可以观察消息与配对的 tool call/result；可选 files channel 可以在 Target 协议边界携带经过验证的 file-change event。
+
+Go 评测端要求 Target Evidence 同时声明 messages 与 tools，验证事件顺序和绑定，并投影 L2 policy 所需的 Evidence channel。缺失必需 channel 时保持不可用。
+
+## L3 不是 Agent Adapter
+
+State Controller 属于环境侧并单独注册，负责 reset、前后 snapshot 与 native verification。不要把 Controller authority 放进 Agent SDK。
+
+## 兼容路径
+
+<span className="aibeat-status-badge aibeat-status-badge--legacy">兼容路径</span>
+
+- `sdk/agentbeat-cli` 保留旧 SDK-hosted adapter 流程。
+- `core/go/cmd/agentbeat` 是兼容 adapter。
+- 新评测接入通过 `agentbeat eval-run` 使用 Go Core。
+- 基于 Inspect 的 benchmark 工作不是 AgentBeat 主要 Target runtime。
+
+<CardGroup cols={2}>
+  <Card title="观测模型" icon="layer-group" href="/cn/agentbeat/observation-model" />
+  <Card title="Evidence 与评分" icon="scale-balanced" href="/cn/agentbeat/evidence" />
+</CardGroup>

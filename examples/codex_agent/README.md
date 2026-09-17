@@ -1,11 +1,39 @@
-# Codex Agent Promptbeat Example
+# Codex Agent legacy compatibility example
+
+> This directory demonstrates historical Codex/Promptfoo integration paths. It
+> is retained as migration material; it is not the Go Core Connector
+> implementation for a new customer deployment.
+
+## Product boundary
+
+In the current architecture, Codex is a customer-deployed **Target**. AI Beat
+Go Core calls the Target's stable business HTTP API through a registered
+Connector. The following remain internal to that customer Target:
+
+- `codex app-server` JSON-RPC and notification normalization;
+- the local model/Responses proxy and deployment-fixed model credentials;
+- MCP tools, files, sandbox policy, and customer-owned state;
+- optional AgentBeat SDK collection that exports tool/file/trace Evidence.
+
+They are not Core Connector implementations, and Inspect does not manage
+Codex. Go Core owns Case dispatch, Run ID allocation, capability negotiation,
+Evidence projection, deterministic scoring, LLM Judge invocation, and score
+aggregation. New Target requests must use the Core-supplied Run ID; the legacy
+adapter's generated fallback exists only for backward compatibility.
+
+For a production customer Target, model endpoint, model identity, credentials,
+workspace, tools, and sandbox policy are fixed by the deployment-side Target
+Profile. They must not be selected or overridden by Case data or per-run
+evaluator input. Some files in this historical demo still expose runtime knobs;
+do not copy that compatibility behavior into a new Connector.
 
 This example contains two Codex target paths:
 
 - `promptbeat.yaml`: legacy Promptfoo `openai:codex-sdk` provider path.
 - `promptbeat.app-server.yaml`: Promptbeat HTTP target path backed by the official `codex app-server` protocol.
 
-The app-server path is the preferred adapter shape for Agent Runtime Evaluation:
+The app-server path is the preferred **legacy compatibility** shape in this
+directory:
 
 ```text
 Promptbeat / Promptfoo HTTP target
@@ -29,14 +57,16 @@ phase-one evaluation contract:
 - `trace_events`: Promptbeat TraceEvent rows for evidence review.
 - `artifact_manifest`: declared evidence artifacts for the run.
 
-`adapter.mjs` is implemented on top of `agentbeat-sdk`
-(`sdk/agentbeat-sdk-js`): the generic TraceEvent/EvalRun/judge-observation
+`adapter.mjs` is implemented on top of legacy compatibility exports from
+`agentbeat-sdk` (`sdk/agentbeat-sdk-js`): the generic
+TraceEvent/EvalRun/judge-observation
 assembly, JSON-line parsing, and the EvalRun HTTP server skeleton (routing,
 auth, in-memory storage) all come from the SDK, and this adapter only keeps
 the Codex-specific pieces (app-server JSON-RPC protocol, sandbox policy
 mapping, credential/model resolution, responses-proxy routing). It doubles
-as the reference example for "how to SDK-ify an existing agent adapter" --
-see `sdk/agentbeat-sdk-js/README.md` for the SDK's own API docs.
+as a migration example for an existing SDK-hosted adapter. New integrations use
+the SDK only as an optional Collector/Evidence exporter; see
+`sdk/agentbeat-sdk-js/README.md` for the current product boundary.
 
 Auth for the adapter's EvalRun routes still uses the `CODEX_APP_SERVER_EVAL_TOKEN`
 environment variable for backward compatibility (existing deployments that

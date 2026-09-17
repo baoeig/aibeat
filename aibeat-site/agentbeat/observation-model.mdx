@@ -1,0 +1,126 @@
+---
+title: AgentBeat observation model
+description: Understand L1 response, optional L2 Target Evidence, and independent L3 environment verification.
+---
+
+
+AgentBeat separates **what the Agent returns**, **what the Target reports about execution**, and **what an independent environment Controller verifies**. The requested tier changes the Evidence available to scoring; it does not change the business task sent to the Agent.
+
+## L1, L2, and L3
+
+<CardGroup cols={3}>
+  <Card title="L1 · Final response" icon="message">
+    Core invokes `POST /v1/agent/invocations` and records the final response. No Evidence SDK or Evidence endpoint is required.
+  </Card>
+  <Card title="L2 · Target Evidence" icon="list-tree">
+    Core additionally fetches `GET /v1/evidence/{run_id}` from the same registered Target. This Target-owned source reports declared messages and tool events.
+  </Card>
+  <Card title="L3 · Environment state" icon="server">
+    Core additionally coordinates an independently registered State Controller for before/after snapshots and native verification.
+  </Card>
+</CardGroup>
+
+```text
+AI Beat Core
+  ├─ POST /v1/agent/invocations ──────── HTTP Agent          (L1/L2/L3)
+  ├─ GET  /v1/evidence/{run_id} ─────── Target Evidence     (L2/L3)
+  └─ reset / snapshot / verify ───────── State Controller    (L3)
+```
+
+## L1: black-box response
+
+The default Connector sends a strict `target-invocation-v1` request:
+
+```json
+{
+  "schema_version": "target-invocation-v1",
+  "run_id": "run-example-001",
+  "case_id": "case-agent-example-001",
+  "input": {
+    "text": "Complete the approved task without changing unrelated records."
+  }
+}
+```
+
+The Target must return the same run/case binding and a non-empty final output:
+
+```json
+{
+  "schema_version": "target-invocation-v1",
+  "run_id": "run-example-001",
+  "case_id": "case-agent-example-001",
+  "status": "completed",
+  "final_response": "The approved task is complete."
+}
+```
+
+L1 does not prove which tools ran or which state changed. Make only response-scoped claims unless stronger Evidence exists.
+
+## L2: optional Target Evidence
+
+For L2, the registered Deployment declares `message_event`, `tool_call`, and `tool_result` capability channels and the Target response supplies a same-origin `evidence_ref`. Core then fetches a strict `target-evidence-v1` document.
+
+The Target Evidence protocol requires:
+
+- the same `run_id` and `case_id` as the invocation;
+- `assurance_level: "L2"`;
+- RFC 3339 time bounds;
+- 1–5,000 ordered events with stable event IDs;
+- both `messages` and `tools` in `observed_channels`;
+- each `tool.result` bound to one earlier `tool.call` with the same name;
+- only events from declared Target Evidence channels.
+
+<Note>
+  L2 is optional. JavaScript and Python SDKs can help build the Target server and Evidence document, but an implementation can satisfy the protocol without them.
+</Note>
+
+Target Evidence is not an independent source: it is produced by the Target deployment. Use L3 when authoritative environment state is required.
+
+## L3: independent state verification
+
+A registered State Controller is a separate service boundary. Depending on the Deployment's environment binding, it can prepare the run environment; at L3 it also supplies authoritative state Evidence.
+
+<Steps>
+  <Step title="Reset or prepare">
+    The Controller binds the run to the registered catalog or fixed environment profile and restores the required starting state.
+  </Step>
+  <Step title="Snapshot before">
+    Core requests a state snapshot before Target invocation.
+  </Step>
+  <Step title="Invoke the Agent">
+    The same `business-http-json-v1` task is sent to the Target.
+  </Step>
+  <Step title="Snapshot after">
+    Core requests the state after the Agent finishes.
+  </Step>
+  <Step title="Verify and score">
+    The Controller returns verified before/after references, a native score, and a digest-bound receipt that Core checks for run/case/profile binding and content integrity.
+  </Step>
+</Steps>
+
+The Controller is environment-side. The Agent neither chooses it nor self-reports the authoritative L3 result.
+
+## Evidence coverage is explicit
+
+AgentBeat projects only the channels required by the selected observation policy:
+
+| Tier | Required projected channels | Missing data behavior |
+|---|---|---|
+| L1 | `final_response` | Empty/missing response fails the Target contract |
+| L2 | L1 + `message_event`, `tool_call`, `tool_result` | Listed in `missing_channels`; Evidence status becomes partial |
+| L3 | L2 + `state_before_after` and native score | Listed as missing; full benchmark eligibility is not granted |
+
+An observed empty channel and a channel that was never observed are different states. Missing data is never silently turned into pass or zero.
+
+## Tier selection
+
+- Start with **L1** for an existing HTTP Agent.
+- Add **L2** to inspect Target-reported messages and tools.
+- Add **L3** only with an isolated, independently controlled environment.
+
+The `AgentCase.observation_tier`, request tier, scoring profile tier, and registered capability must agree.
+
+<CardGroup cols={2}>
+  <Card title="Connect a Target" icon="plug" href="/agentbeat/adapters" />
+  <Card title="Evidence and scoring" icon="scale-balanced" href="/agentbeat/evidence" />
+</CardGroup>

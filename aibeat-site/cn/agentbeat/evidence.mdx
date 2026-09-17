@@ -1,0 +1,127 @@
+---
+title: AgentBeat Evidence 与评分
+description: 理解 Evidence 权属、Cascade component、四维指标方向、coverage 与 L3 native hard gate。
+---
+
+
+AgentBeat 分离 Evidence 来源、评分 component 与公开指标。这样可以明确说明实际观测了什么、由哪个 component 作出判断，以及结果只是 scope-qualified，还是具备完整 L3 benchmark 资格。
+
+## 各层 Evidence
+
+| 层级 | Evidence 来源 | Core 投影内容 | 权威范围 |
+|---|---|---|---|
+| L1 | HTTP invocation 响应 | `final_response` | 仅 Target 响应 |
+| L2 | Target `GET /v1/evidence/{run_id}` | L1 + message、tool call、tool result | Target-owned 观测 |
+| L3 | 独立 State Controller | L2 + 前后状态与 native score | 环境侧 native verification |
+
+Target SDK 是可选 L2 helper。L3 authority 永远不来自 Agent SDK。
+
+## 缺失本身就是一种结果
+
+`AgentEvidence` 包含：
+
+- `channels`：所选 observation policy 要求的 channel；
+- `missing_channels`：实际不可用的必需 channel；
+- `coverage`：已观测必需 channel 占全部必需 channel 的比例；
+- `status`：完整或部分 Evidence 状态。
+
+Target 明确观测到空 channel，与从未观测到该 channel 是不同状态。缺失 Evidence 不会被赋予虚构 0 分，也不会被当成通过。
+
+## 两个 Cascade Component
+
+每个 scoring profile 恰好有两个正权重，并且总和为 1：
+
+```text
+configured result =
+  deterministic_rules × deterministic_weight
+  + llm_judge × llm_judge_weight
+```
+
+- **Deterministic component：**L1/L2 使用分层响应/Trace 规则，L3 使用 native 环境 Evidence。
+- **LLM Judge component：**使用评测端配置的 OpenAI-compatible Judge 与 Case `judge_rubric`。
+
+`0.7` deterministic / `0.3` Judge 是一个产品 profile 示例。Go Core 没有把它硬编码为唯一或默认比例。
+
+### 完整分数与部分分数
+
+Cascade 同时保留：
+
+- `provisional_score`：按实际可用 component 重新归一化；
+- `final_score`：只有两个已配置 component 都完整时才存在；
+- `available_weight` 与 `evidence_coverage`：评分 component 覆盖率；
+- coverage 不完整时的 reason code。
+
+不要把 provisional score 当成完整 benchmark 结果。
+
+## 四维指标方向
+
+<CardGroup cols={2}>
+  <Card title="Utility" icon="check">
+    方向：`utility_success`。Agent 是否完成了合法任务？
+  </Card>
+  <Card title="Security" icon="shield">
+    方向：`security_success`。Agent 是否保持安全边界？
+  </Card>
+  <Card title="ASR" icon="triangle-exclamation">
+    方向：`attack_success`。攻击目标是否成功？ASR 越高，对防守方越不利。
+  </Card>
+  <Card title="Overall" icon="scale-balanced">
+    方向：`overall_gate`。以 gate 方式组合适用的 Utility、Security 与 ASR verdict。
+  </Card>
+</CardGroup>
+
+Security 与 ASR 不是别名：前者以防御成功为正向，后者以攻击成功为正向。
+
+## Applicability 与 Coverage
+
+每个维度保留：
+
+- `applicability`：`applicable`、`not_applicable` 或 `review`；
+- `verdict`：pass/fail、attack blocked/succeeded、review、unavailable、not observed 或 not applicable；
+- 可选数值 `score`；
+- component `evidence_sources` 与配置权重；
+- `coverage`、scope、official 标记与 reason code。
+
+对 `utility_only` Case，Security 与 ASR 在结构上不适用。Dataset rate 只把已经明确判定的适用样本放入分母；review、unavailable、not observed 与 not applicable 数量继续保留。
+
+## Scope-qualified 与 Official
+
+Sample metrics 默认发布为 `scope_qualified`。只有 Cascade 具备 full-benchmark eligibility、层级为 L3、Evidence 完整，并且各必需维度满足 official eligibility 时，才发布为 `official_benchmark`。
+
+该规则可以防止把 L1 响应结果包装成环境层 assurance。
+
+## L3 Native Hard Gate
+
+当默认 metric policy 启用 native security gate，且权威 L3 deterministic Evidence 可用时：
+
+- 已验证的 deterministic Security failure 产生 `native_security_gate_failed`；
+- 已验证的 deterministic attack success 产生 `native_asr_gate_attack_succeeded`；
+- LLM Judge 分数不能推翻这两个结果。
+
+<Warning>
+  该保证仅限 Go Core 检查的 L3 native 条件，不能把 L1 文本或 Target-owned L2 event 变成独立环境证明。
+</Warning>
+
+## 在结果中检查什么
+
+```bash
+jq '{
+  evidence: {
+    tier: .evaluation.evidence.observation_tier,
+    missing: .evaluation.evidence.missing_channels,
+    coverage: .evaluation.evidence.coverage
+  },
+  cascade: .evaluation.score,
+  metrics: {
+    utility: .evaluation.metrics.utility,
+    security: .evaluation.metrics.security,
+    asr: .evaluation.metrics.asr,
+    overall: .evaluation.metrics.overall
+  }
+}' result.json
+```
+
+<CardGroup cols={2}>
+  <Card title="观测模型" icon="layer-group" href="/cn/agentbeat/observation-model" />
+  <Card title="AgentCase 契约" icon="file-code" href="/cn/agentbeat/scenarios" />
+</CardGroup>

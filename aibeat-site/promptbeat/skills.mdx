@@ -1,0 +1,113 @@
+---
+title: Download and use AIBeat Skill
+description: Download six instruction packs, load one into your coding assistant, and start a local PromptBeat preview or write an AgentBeat case.
+---
+
+Let your coding assistant help choose commands, preview cases or diagnose an error. Start with **Run Quick Eval** if you just want to try PromptBeat.
+
+<CardGroup cols={2}>
+  <Card title="Download AIBeat Skill · ZIP" icon="download" href="/downloads/aibeat-skill.zip">
+    Six instruction packs with their references. `agentbeat-write-agent-cases` also ships `scripts/pack.py`. No evaluation runtime inside.
+  </Card>
+  <Card title="Get PromptBeat first" icon="terminal" href="/promptbeat/quickstart">
+    Download the full product package if you have not installed it yet.
+  </Card>
+</CardGroup>
+
+[ZIP checksum](/downloads/aibeat-skill.zip.sha256) · [Legacy archive](/downloads/promptbeat-skills.zip) · [Public Skills source](https://github.com/tophant-ai/aibeat/tree/713c2847ff80cbcbf9a2f1ca48f3c0b35c60d7d6/promptbeat-skills)
+
+The ZIP is the website's instruction bundle for AIBeat Skill. The linked public repository is an earlier source snapshot; its instructions can differ from this bundle. Full v0.2 product packages also contain an earlier Skills copy. Downloading or loading a Skill does not install PromptBeat or configure your model credentials.
+
+## 1. Extract the Skills ZIP
+
+Use your system's archive tool, or run one of these commands in your downloads folder. Choose a new destination rather than overwriting an existing copy.
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    unzip aibeat-skill.zip -d aibeat-skill-unpacked
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    Expand-Archive .\aibeat-skill.zip -DestinationPath .\aibeat-skill-unpacked
+    ```
+  </Tab>
+</Tabs>
+
+Inside `aibeat-skill-unpacked/aibeat-skill/` (or `promptbeat-skills-unpacked/promptbeat-skills/` for the legacy archive), find `promptbeat-run-quick-eval/`. Keep its `SKILL.md` and `references/` folder together. `MANIFEST.json` lists the source files and their SHA-256 checksums.
+
+## 2. Add one Skill to your coding tool
+
+Open the project where you use your coding assistant. Copy the **whole** `promptbeat-run-quick-eval` folder to the matching location below. If that folder already exists, compare your local changes before replacing it. You can use your file manager on any platform.
+
+<Tabs>
+  <Tab title="Claude Code">
+    ```text
+    your-project/
+    └── .claude/skills/promptbeat-run-quick-eval/
+        ├── SKILL.md
+        └── references/cli-recipes.md
+    ```
+
+    Start a fresh Claude Code session in that project. Use `/promptbeat-run-quick-eval` to select the Skill, then provide the task below. [Claude Code Skills documentation](https://code.claude.com/docs/en/skills).
+  </Tab>
+  <Tab title="Codex">
+    ```text
+    your-project/
+    └── .agents/skills/promptbeat-run-quick-eval/
+        ├── SKILL.md
+        └── references/cli-recipes.md
+    ```
+
+    Start a fresh Codex session in that project. Select `promptbeat-run-quick-eval` from your installed version's Skills interface, or name it explicitly in your task. [Codex Skills documentation](https://developers.openai.com/codex/skills).
+  </Tab>
+  <Tab title="Other coding tools">
+    Use the Skill directory documented by your tool; the path is not universal. If it cannot discover Skills, explicitly attach the selected `SKILL.md` and make the adjacent references available. This is manual instruction loading, not an automatic installation.
+  </Tab>
+</Tabs>
+
+Only the selected Skill is needed for this first task. Install the others the same way when you need them.
+
+## 3. Give the assistant its first task
+
+Replace `<package-path>` with the extracted **PromptBeat product package** folder—not the Skills folder. Copy this into your coding assistant:
+
+```text
+Use promptbeat-run-quick-eval. My PromptBeat package is at <package-path>.
+Validate examples/bootstrap/promptbeat.yaml and preview up to five local cases
+in artifacts/cases.json. Do not call models or change credentials.
+Show me where the output is saved.
+```
+
+The expected local steps are:
+
+```bash
+mkdir -p artifacts
+./bin/promptbeat validate --config examples/bootstrap/promptbeat.yaml
+./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
+```
+
+On Windows, the assistant should use `.\bin\promptbeat.cmd` and PowerShell paths as shown in the [quickstart](/promptbeat/quickstart). These commands preview inputs, not model answers or scores. Inspect **`artifacts/cases.json`** in the package folder to finish the first task.
+
+<Note>
+  The Skill guides your coding assistant; it is not a sandbox or a permission system. Review commands before approving them. For `run` or `eval`, configure your providers and explicitly approve the endpoints, scope and possible model costs. Never paste credentials into the conversation.
+</Note>
+
+## Which Skill should I use next?
+
+| Skill directory | Use it to |
+| --- | --- |
+| `promptbeat-getting-started` | Find your package and choose a first local test. |
+| `promptbeat-run-quick-eval` | Choose between validation, case preview, evaluation and reports. |
+| `promptbeat-select-risk-pack` | Pick model risks, existing scenarios and local seeds. |
+| `promptbeat-debug-run` | Diagnose config, path, provider and result errors. |
+| `promptbeat-connect-coding-agent` | Distinguish using a coding assistant from testing one, and identify legacy integration limits. |
+| `agentbeat-write-agent-cases` | Write AgentBeat cases in the 21-field contract and pack them with the bundled `scripts/pack.py`. |
+
+These are AIBeat Skill instruction packs covering PromptBeat workflows and one AgentBeat case-writing workflow, not an AgentBeat installer or evidence collector. For HTTP Agent evaluation, start with [AgentBeat setup and release compatibility](/agentbeat/quickstart).
+
+<CardGroup cols={2}>
+  <Card title="Connect a model and run" icon="play" href="/promptbeat/quickstart">Continue from local preview to a full evaluation.</Card>
+  <Card title="Read the results" icon="file-lines" href="/promptbeat/reports">Find the HTML report and underlying result files.</Card>
+</CardGroup>

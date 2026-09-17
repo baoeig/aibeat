@@ -1,0 +1,80 @@
+---
+title: PromptBeat execution
+description: Run the complete evaluation pipeline, control Provider scope, and inspect normalized results.
+---
+
+
+PromptBeat execution evaluates model and Prompt behavior through the configured external evaluation backend. Start with a small scope and make every remote call explicit.
+
+## Full project pipeline
+
+```bash
+promptbeat run \
+  --config examples/llm-basic/promptbeat.yaml \
+  --output-dir artifacts/llm-basic/run \
+  --progress plain
+```
+
+The current Go application runs five stages:
+
+```text
+compile → generate → validate generated cases → eval → parse
+```
+
+| Stage | What happens |
+|---|---|
+| Compile | Convert the PromptBeat project into backend configuration |
+| Generate | Run external-backend red-team generation |
+| Validate | Check the generated backend artifact when supported |
+| Eval | Call configured Target providers through the external backend |
+| Parse | Normalize the raw result into PromptBeat `EvaluationResult` |
+
+## Other execution surfaces
+
+| Command | Use it when |
+|---|---|
+| `promptbeat pipeline run` | You want the explicit full-chain command and backend selection |
+| `promptbeat run promptfoo` | You already have backend YAML and want raw execution |
+| `promptbeat eval` | You have backend YAML and may need Provider overrides |
+| `promptbeat compile promptfoo` | You want to inspect generated backend YAML before execution |
+
+Run `promptbeat --help` for the exact flags in your build.
+
+## Provider roles
+
+The `examples/llm-basic` project keeps three roles separate:
+
+- **Generator:** expands red-team cases in the external-backend generation stage.
+- **Judge:** applies model-based grading where the configured assertions require it.
+- **Target:** the model or Prompt endpoint under evaluation.
+
+Each role can use a different model and endpoint. Environment placeholders are validated before the project pipeline starts.
+
+## Cost and side-effect boundary
+
+<Warning>
+  A complete run can call all three Provider roles. Set a small `num_tests`, review generated content, and confirm concurrency/delay before scaling. Do not point a red-team configuration at a production endpoint unless that scope is explicitly authorized.
+</Warning>
+
+PromptBeat records what the backend returns, but it cannot infer hidden model state or HTTP Agent tool activity. Results remain response-scoped.
+
+## Output contract
+
+The output directory defaults include:
+
+- `promptfoo.redteam.yaml` — compiled backend configuration;
+- `promptfoo.generated.yaml` — generated backend artifact;
+- `promptfoo-result.json` — raw backend result;
+- `evaluation_result.json` — normalized Go result;
+- `report.html` — rendered PromptBeat report.
+
+Artifact paths can be configured only within the bounded output directory.
+
+## Compare Providers deliberately
+
+Provider overrides are available on `promptbeat eval` through repeated `--provider` values or `--provider-file`. Keep the cases and Scenario set constant when comparing models, and record every override with the result.
+
+<CardGroup cols={2}>
+  <Card title="Judgment" icon="scale-balanced" href="/promptbeat/judgment" />
+  <Card title="Reports" icon="file-lines" href="/promptbeat/reports" />
+</CardGroup>

@@ -1,0 +1,127 @@
+---
+title: AgentBeat Evidence and scoring
+description: Understand Evidence ownership, cascade components, four metric directions, coverage, and L3 native hard gates.
+---
+
+
+AgentBeat keeps the Evidence source, score components, and public metrics separate. That separation makes it possible to say what was observed, which component made a decision, and whether the result is scope-qualified or eligible as a complete L3 benchmark.
+
+## Evidence by tier
+
+| Tier | Evidence source | What Core projects | Authority |
+|---|---|---|---|
+| L1 | HTTP invocation response | `final_response` | Target response only |
+| L2 | Target `GET /v1/evidence/{run_id}` | L1 + messages, tool calls, tool results | Target-owned observations |
+| L3 | Independent State Controller | L2 + before/after state and native score | Environment-side native verification |
+
+Target SDKs are optional L2 helpers. L3 authority never comes from the Agent SDK.
+
+## Missing is a first-class result
+
+`AgentEvidence` includes:
+
+- `channels`: the channels required by the selected observation policy;
+- `missing_channels`: required channels that were not actually available;
+- `coverage`: observed required channels divided by required channels;
+- `status`: complete or partial Evidence state.
+
+An empty channel explicitly observed by the Target differs from a channel that was never observed. Missing Evidence is not assigned a fabricated zero and is not treated as a pass.
+
+## Two cascade components
+
+Every scoring profile has exactly two positive weights that sum to 1:
+
+```text
+configured result =
+  deterministic_rules × deterministic_weight
+  + llm_judge × llm_judge_weight
+```
+
+- **Deterministic component:** uses tier-aware response/trace rules at L1/L2 and native environment Evidence at L3.
+- **LLM Judge component:** uses an OpenAI-compatible Judge configured by the evaluator and the Case's `judge_rubric`.
+
+A `0.7` deterministic / `0.3` Judge split is an example product profile. Go Core does not hardcode it as the only or default ratio.
+
+### Complete and partial scores
+
+The cascade retains both:
+
+- `provisional_score`: normalized across the components that are actually available;
+- `final_score`: present only when both configured components are complete;
+- `available_weight` and `evidence_coverage`: the scoring component coverage;
+- a reason code when coverage is partial.
+
+Do not present a provisional score as a complete benchmark result.
+
+## Four metric directions
+
+<CardGroup cols={2}>
+  <Card title="Utility" icon="check">
+    Direction: `utility_success`. Did the Agent complete the legitimate task?
+  </Card>
+  <Card title="Security" icon="shield">
+    Direction: `security_success`. Did the Agent preserve the security boundary?
+  </Card>
+  <Card title="ASR" icon="triangle-exclamation">
+    Direction: `attack_success`. Did the attack goal succeed? A higher ASR score is worse for the defender.
+  </Card>
+  <Card title="Overall" icon="scale-balanced">
+    Direction: `overall_gate`. Combines applicable Utility, Security, and ASR verdicts as a gate.
+  </Card>
+</CardGroup>
+
+Security and ASR are not aliases: one is defense-success-directed and the other is attack-success-directed.
+
+## Applicability and coverage
+
+Each dimension preserves:
+
+- `applicability`: `applicable`, `not_applicable`, or `review`;
+- `verdict`: pass/fail, attack blocked/succeeded, review, unavailable, not observed, or not applicable;
+- optional numeric `score`;
+- component `evidence_sources` and configured weights;
+- `coverage`, scope, official flag, and reason code.
+
+For a `utility_only` Case, Security and ASR are structurally not applicable. Dataset rates use only decided applicable samples as the denominator; review, unavailable, not observed, and not applicable counts remain visible.
+
+## Scope-qualified versus official
+
+Sample metrics are published as `scope_qualified` by default. They become `official_benchmark` only when the cascade is full-benchmark eligible, the tier is L3, Evidence is complete, and all required dimensions satisfy official eligibility.
+
+That rule prevents an L1 response-only result from being presented as if it had environment-level assurance.
+
+## L3 native hard gates
+
+When the default metric policy enables the native security gate and authoritative L3 deterministic Evidence is available:
+
+- a verified deterministic Security failure produces `native_security_gate_failed`;
+- verified deterministic attack success produces `native_asr_gate_attack_succeeded`;
+- an LLM Judge score cannot overturn either result.
+
+<Warning>
+  This guarantee is limited to the L3 native conditions checked by Go Core. It does not turn L1 text or Target-owned L2 events into independent environment proof.
+</Warning>
+
+## What to inspect in a result
+
+```bash
+jq '{
+  evidence: {
+    tier: .evaluation.evidence.observation_tier,
+    missing: .evaluation.evidence.missing_channels,
+    coverage: .evaluation.evidence.coverage
+  },
+  cascade: .evaluation.score,
+  metrics: {
+    utility: .evaluation.metrics.utility,
+    security: .evaluation.metrics.security,
+    asr: .evaluation.metrics.asr,
+    overall: .evaluation.metrics.overall
+  }
+}' result.json
+```
+
+<CardGroup cols={2}>
+  <Card title="Observation model" icon="layer-group" href="/agentbeat/observation-model" />
+  <Card title="AgentCase contract" icon="file-code" href="/agentbeat/scenarios" />
+</CardGroup>

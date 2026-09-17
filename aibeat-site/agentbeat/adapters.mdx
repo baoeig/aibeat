@@ -1,0 +1,115 @@
+---
+title: AgentBeat adapters and SDKs
+description: Connect an HTTP Agent through the default protocol, with optional JavaScript or Python Evidence helpers.
+---
+
+
+AgentBeat's primary integration is a small HTTP contract. SDKs are optional helpers for building that Target boundary and collecting L2 Evidence; they are not alternate evaluation engines. For framework-specific wiring and the newly packaged adapter kits, continue to [SDK integration](/agentbeat/sdk-integration).
+
+## Default Connector
+
+The Go Core registers `business-http-json-v1` as the declarative HTTP Connector.
+
+| Route | Required | Responsibility |
+|---|---|---|
+| `GET /healthz` | Deployment health checks | Report Target readiness |
+| `POST /v1/agent/invocations` | L1/L2/L3 | Accept one `target-invocation-v1` task and return the final response |
+| `GET /v1/evidence/{run_id}` | Optional L2/L3 | Return same-run `target-evidence-v1` messages and tools |
+
+The Connector rejects redirects, enforces response-size limits, checks schema/run/case binding, and requires a non-empty final output. Endpoint and headers come from the selected Registry Deployment.
+
+[See the complete L1 request and Registry example →](/agentbeat/quickstart)
+
+## No SDK is required for L1
+
+Any service can implement the HTTP contract directly. The Agent only receives the trusted task text and evaluator-managed correlation metadata; the Case's attack fields, expected result, Judge rubric, endpoints, and credentials are not sent in the business request.
+
+```text
+AgentBeat Go Core                 Customer Target
+──────────────────                ───────────────
+registered endpoint   ── POST ──▶ /v1/agent/invocations
+run_id + case_id                  existing Agent logic
+trusted task          ◀─ JSON ── final_response
+```
+
+## JavaScript SDK
+
+<span className="aibeat-status-badge aibeat-status-badge--optional">OPTIONAL INTEGRATION</span>
+
+`agentbeat-sdk-js` provides a Target server and bounded Evidence collector:
+
+```javascript
+import { createTargetServer } from "agentbeat-sdk/node";
+
+const server = createTargetServer({
+  targetId: "target-my-agent",
+  auth: targetBearerToken,
+  evidence: { source: "my-agent", observedChannels: ["messages", "tools"] },
+  async invoke({ input, observe }) {
+    const result = await myExistingAgent(input.text);
+    observe?.message({ role: "assistant", text: result.answer });
+    return { finalResponse: result.answer };
+  },
+});
+
+server.listen(8091, "0.0.0.0");
+```
+
+Package responsibilities:
+
+- `agentbeat-sdk`: `EvidenceCollector`, bounded storage, Evidence building;
+- `agentbeat-sdk/node`: Target HTTP server and bearer-token helper;
+- `agentbeat-sdk/adapters/codex-app-server`: notification-to-Evidence projection;
+- `agentbeat-sdk/legacy`: compatibility only; do not use for new integrations.
+
+## Python SDK
+
+<span className="aibeat-status-badge aibeat-status-badge--optional">OPTIONAL INTEGRATION</span>
+
+`agentbeat-sdk-py` exposes the same narrow Target-side role:
+
+```python
+from agentbeat_sdk import create_target_server
+
+
+def invoke(context):
+    answer = my_existing_agent(context.text)
+    if context.observe is not None:
+        context.observe.message(role="assistant", text=answer)
+    return {"final_response": answer}
+
+
+server = create_target_server(
+    target_id="target-my-agent",
+    auth=target_bearer_token,
+    invoke=invoke,
+    evidence={"source": "my-agent", "observed_channels": ["messages", "tools"]},
+)
+server.serve_forever()
+```
+
+The Python package also includes a `LangGraphObserver` that projects completed stream updates into the optional collector. It does not replace LangGraph models, tools, checkpoints, or callbacks.
+
+## L2 Evidence boundary
+
+The optional collectors produce bounded, redacted `target-evidence-v1` documents. They can observe messages and paired tool call/results; an optional files channel can carry validated file-change events at the Target protocol boundary.
+
+The Go evaluator requires the Target Evidence document to declare messages and tools, validates event order and bindings, and projects the Evidence channels required by its L2 policy. A missing required channel remains unavailable.
+
+## L3 is not an Agent adapter
+
+A State Controller belongs to the environment side and is registered separately. It owns reset, before/after snapshot, and native verification. Do not put Controller authority inside the Agent SDK.
+
+## Legacy compatibility
+
+<span className="aibeat-status-badge aibeat-status-badge--legacy">LEGACY COMPATIBILITY</span>
+
+- `sdk/agentbeat-cli` keeps an older SDK-hosted adapter flow working.
+- `core/go/cmd/agentbeat` is a compatibility adapter.
+- New evaluation integrations use the Go Core through `agentbeat eval-run`.
+- Inspect-based benchmark work is not the primary AgentBeat Target runtime.
+
+<CardGroup cols={2}>
+  <Card title="Observation model" icon="layer-group" href="/agentbeat/observation-model" />
+  <Card title="Evidence and scoring" icon="scale-balanced" href="/agentbeat/evidence" />
+</CardGroup>

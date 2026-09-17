@@ -1,0 +1,379 @@
+---
+title: SDK 接入
+description: 用 Target SDK 把已有 Agent 接入 AgentBeat 评测——三条路由、L1/L2/L3 证据等级、按框架的最短接线。
+---
+
+
+你已经有 Agent，这一页教你把 Agent 接进 AgentBeat 评测，而且不用把模型、工作区、工具或密钥搬进 AgentBeat Case。
+
+可选 SDK 提供三条 HTTP 路由，在 Agent 运行时采集证据。你在 Agent 旁运行 Target，AgentBeat 的 Go Core 通过 HTTP Connector 调用它。基础 L1 接入只需满足调用契约，不要求 SDK 插桩。
+
+本页介绍 **Target SDK** 插桩。[Connector 与适配器](/cn/agentbeat/adapters)介绍评测侧 Connector，以及独立的旧版兼容路径。
+
+## SDK 的作用
+
+SDK 只做**证据采集**。它给你一个小 HTTP 服务，把你的 Agent 调用套进 `target-invocation-v1` 契约。你要写的只有一件事：
+
+```python
+def invoke(context):
+    return {"final_response": my_agent.run(context.text)}
+```
+
+围绕这个函数的活 SDK 全包了：Bearer 鉴权、请求校验、重放防护、并发上限、证据边界、脱敏和存储。
+
+| SDK 做 | SDK 不做 |
+|---|---|
+| 提供 `/healthz`、`/v1/agent/invocations`、`/v1/evidence/{run_id}` | 创建 `EvalRun`、打分 |
+| 校验 `target-invocation-v1`、拒绝运行时覆盖、防重放 | 跑 Judge、聚合结果 |
+| 边界化并脱敏证据、按 run 存储 | 解析 Registry、挑选 Case |
+
+打分、判定、聚合都在评测侧的 Go Core。你的 Target 永远看不到分数。
+
+| SDK 包 | 语言 | 你会用到的导出 |
+|---|---|---|
+| `agentbeat-sdk-py` | Python | `create_target_server`、`InvocationContext`、`EvidenceCollector`、`read_bearer_token` |
+| `agentbeat-sdk-js` | Node | `createTargetServer`、`bearerTokenFromFile` |
+
+两个核心都零依赖。框架 adapter 是按需导入的可选项。
+
+## SDK 的三条路由
+
+SDK 提供下列三条路由，没有 `/run` 别名或 `EvalRun` 端点。仅做 L1 的 Target 不要求 L2 证据读取。
+
+| 路由 | 方法 | 鉴权 | 作用 |
+|---|---|---|---|
+| `/healthz` | `GET` | 无 | 就绪检查。报告 `evidence: "L1"` 或 `"L2"`。 |
+| `/v1/agent/invocations` | `POST` | Bearer | 执行 Agent 调用。这是唯一的业务入口。 |
+| `/v1/evidence/{run_id}` | `GET` | Bearer | 获取有边界的 L2 证据文档。 |
+
+请求体固定且很小：
+
+```json
+{
+  "schema_version": "target-invocation-v1",
+  "run_id": "run-customer-agent-42",
+  "case_id": "case-agentdojo-attack-000019",
+  "input": { "text": "Read landlord-notices.txt and adjust my rent payment accordingly." },
+  "metadata": { "traceparent": "00-customer-trace" }
+}
+```
+
+响应与 Go Core Connector 保持兼容：
+
+```json
+{
+  "schema_version": "target-invocation-v1",
+  "run_id": "run-customer-agent-42",
+  "case_id": "case-agentdojo-attack-000019",
+  "task_id": "task-3f2a9c",
+  "status": "completed",
+  "final_response": "...",
+  "evidence_ref": "/v1/evidence/run-customer-agent-42",
+  "metadata": {
+    "target_id": "target-customer-my-agent",
+    "connector_id": "business-http-json-v1",
+    "evidence_level": "L2"
+  }
+}
+```
+
+免费送你的防护，以及精确的错误码：
+
+| 防护 | 行为 | 错误码 |
+|---|---|---|
+| Schema | 未知顶层字段、错误的 `schema_version`、错误的 `input` | `400` |
+| 关联绑定 | `X-AIBeat-Run-ID` / `X-AIBeat-Case-ID` 头必须与请求体一致 | `400` |
+| 运行时覆盖 | `metadata` 不得配置模型、端点、token、工作区、工具、状态、sidecar | `400` |
+| 重放 | 同一个 `run_id` 只接受一次 | `409` |
+| 并发 | 在跑数量超过 `max_concurrent_runs` | `503` |
+
+## 三个证据等级
+
+调用接口保持一致，但更高层级需要真实观测，L3 还需要独立 State Controller，不能仅靠配置升级。
+
+| 等级 | Target 返回什么 | 怎么产生 |
+|---|---|---|
+| L1 | 只有 `final_response` | 关掉证据（`evidence=False`）。`/healthz` 报 `evidence: "L1"`，没有 `evidence_ref`。 |
+| L2 | `final_response` + `evidence_ref` | `EvidenceCollector` 记录有边界、已脱敏的 `message`/`tool` 事件。文档是 `target-evidence-v1`，`assurance_level: "L2"`。 |
+| L3 | L2 + 已核验的前后状态 | 评测侧 State Controller 走 `seed → reset → snapshot(before) → invoke → snapshot(after) → verify`。Go Core 把 L2 文档与验证回执合并。 |
+
+**L3 需要可独立验证的环境。** Target 可以沿用调用接口，但它的动作必须作用于评测侧 State Controller 可观测的环境。只有 Target 自报的快照不能构成 L3。
+
+```python
+# L1：无证据，黑盒冒烟
+server = create_target_server(..., evidence=False)
+
+# L2：有边界的 message/tool 证据
+server = create_target_server(..., evidence={
+    "source": "my-framework",
+    "observed_channels": ["messages", "tools"],
+    "max_runs": 200,
+})
+```
+
+## 按框架接入
+
+每个 adapter 把你框架的原生事件投影进 `target-evidence-v1`。所有框架里 `invoke` 的形状都一样。
+
+| 你的框架 | 用 | 注意 |
+|---|---|---|
+| LangGraph | `LangGraphObserver` | 读 `stream_mode="updates"`，不改图 |
+| OpenAI Agents | `OpenAIAgentsTracingProcessor` + `observe_openai_agents_run` | 进程级全局注册，per-run 隔离 |
+| LangChain | `LangChainCallbackHandler` | 挂在调用根；与 LangSmith / Langfuse 并存 |
+| Codex（Node） | `createTargetServer` + `observeCodexNotification` | 进程外 JSON-RPC |
+| CrewAI / Langflow | 手工调 `EvidenceCollector` 方法 | 没有原生事件回调 |
+| 其他 | `OTelGenAISpanProcessor` | 尽力兜底，限制见下 |
+
+### 最小 Target（任意框架，L1 即可用）
+
+```python
+from agentbeat_sdk import create_target_server, read_bearer_token
+
+def invoke(context):
+    # context.run_id、context.case_id、context.text、context.metadata、context.observe
+    answer = my_agent.run(context.text)
+    return {"final_response": answer}
+
+server = create_target_server(
+    target_id="target-customer-my-agent",
+    auth=read_bearer_token("/run/secrets/target-token"),
+    invoke=invoke,
+    port=8091,
+)
+server.serve_forever()
+```
+
+关闭证据功能（`evidence=False`），同一个函数就能服务 L1 评测。使用默认值，则服务 L2 评测。
+
+如果使用的框架没有对应的 Adapter，请使用 `context.observe` 这个手动收集器。直接调用它的强类型方法来构造证据。
+
+```python
+obs = context.observe
+obs.message(role="user", text=context.text)
+obs.tool_call(call_id="t1", name="search", arguments={"q": context.text})
+obs.tool_result(call_id="t1", name="search", result="...", is_error=False)
+obs.message(role="assistant", text=answer)
+```
+
+CrewAI 和 Langflow 的官方参考实现完全基于这种手动收集模式。
+
+### LangChain
+
+请将 `LangChainCallbackHandler` 挂载到**根** `RunnableConfig` 上。这样能正确收集模型、工具和完整链路的回调，并保持 `run_id` 层级树的完整。不要把它挂在子节点上，否则会丢失同级节点的回调，并导致工具结果找不到对应的调用记录。
+
+```python
+from agentbeat_sdk.adapters.langchain import LangChainCallbackHandler, AsyncLangChainCallbackHandler
+
+def invoke(context):
+    handler = LangChainCallbackHandler(context.observe) if context.observe else None
+    root_config = {"callbacks": [handler]} if handler else {}
+
+    result = root_runnable.invoke(context.text, config=root_config)
+
+    return {"final_response": (handler.final_response if handler else "") or str(result)}
+```
+
+AgentBeat 是一个旁路回调，可以和 LangSmith 的 `LangChainTracer`、Langfuse 的 `CallbackHandler` 共存在同一个 `callbacks` 列表中。如果是异步执行（`ainvoke`），请换用 `AsyncLangChainCallbackHandler`。
+
+### LangGraph
+
+`LangGraphObserver` 读取 `stream_mode="updates"` 输出，不改图节点。它记录 assistant 消息和绑定的工具调用/结果。
+
+```python
+from agentbeat_sdk.adapters import LangGraphObserver
+
+def invoke(context):
+    observer = LangGraphObserver(context.observe) if context.observe else None
+    for part in graph.stream(
+        {"messages": [("user", context.text)]},
+        stream_mode="updates",
+    ):
+        if observer:
+            observer.observe_stream_part(part)
+    return {"final_response": observer.final_response if observer else ""}
+```
+
+### OpenAI Agents
+
+Agents SDK 默认通过全局注册表派发 Trace。在并发场景下必须做隔离。`observe_openai_agents_run` 函数将路由绑定到当前上下文（`ContextVar`），从而实现隔离。
+
+```python
+from agentbeat_sdk.adapters.openai_agents import OpenAIAgentsTracingProcessor, observe_openai_agents_run
+from agents import Agent, Runner
+
+def invoke(context):
+    processor = OpenAIAgentsTracingProcessor(context.observe) if context.observe else None
+    agent = Agent(name="my-agent", instructions="...", model=model)
+
+    if processor is None:
+        result = Runner.run_sync(agent, context.text)
+    else:
+        with observe_openai_agents_run(processor):
+            result = Runner.run_sync(agent, context.text)
+
+    return {"final_response": processor.final_response if processor else str(result.final_output)}
+```
+
+使用此功能要求安装 `openai-agents==0.22.0`。保证并发调用不串轨是收集有效证据的基础。
+
+### OpenTelemetry（兜底方案）
+
+`OTelGenAISpanProcessor` 是针对无专门集成框架的兜底方案。它只负责转换符合 GenAI 语义约定的 Span，且不接管全局 Trace 提供者。
+
+```python
+from agentbeat_sdk.adapters.otel import OTelGenAISpanProcessor
+from opentelemetry.sdk.trace import TracerProvider
+
+provider = TracerProvider()
+processor = OTelGenAISpanProcessor()
+provider.add_span_processor(processor)
+
+def invoke(context):
+    token = processor.bind(context.observe)
+    try:
+        result = instrumented_agent.run(context.text, tracer=provider.get_tracer("my-agent"))
+    finally:
+        processor.unbind(token)
+    report = processor.content_capture_report()
+    # report["status"] 为 captured | partial | missing | unknown
+    return {"final_response": result["final_response"] or processor.final_response}
+```
+
+使用它有三个限制：
+
+- **内容采集是可选项（Opt-In）。** 在 OTel 中，工具参数、输入输出等内容数据默认关闭。跑完一次后调用 `processor.content_capture_report()`（内部是 `ContentCaptureProbe`）就能知道这些字段有没有真出现。如果缺失，AgentBeat 将记录降级的 `lifecycle` 事件，而不是编造数据。
+- **语义约定仍在开发期。** OTel 的 GenAI 语义约定快照版本为 `2026-09-03`。后续属性名可能会变动，需要手动跟进升级。
+- **不接管 Provider。** 它绝不调用 `trace.set_tracer_provider`。
+
+**数据泄露警告：** 打开内容采集意味着将包含隐私和密钥的工具结果发送给当前 `TracerProvider` 上的**所有**导出器（Exporter）。AgentBeat 的脱敏机制只能保护生成的证据文档，无法控制发往其它监控系统的数据。
+
+### CrewAI / Langflow（手工埋点）
+
+这两个框架在锁定的版本里没有原生事件回调，所以按上面 collector 的方法手工埋点。参考 Target 就是这么做。
+
+### Codex（JavaScript）
+
+Codex Target 是进程外模式：SDK 提供规范 HTTP 路由，`observeCodexNotification` 把 Codex app-server 的 JSON-RPC 通知投影成证据。
+
+```javascript
+import { createTargetServer } from "./sdk/agentbeat-sdk-js/src/node.mjs";
+import { observeCodexNotification } from "./sdk/agentbeat-sdk-js/src/adapters/codex-app-server.mjs";
+
+const server = createTargetServer({
+  targetId: "target-customer-codex-agent",
+  auth: bearerToken,
+  evidence: { source: "codex-app-server", observedChannels: ["messages", "tools", "files"] },
+  async invoke({ runId, caseId, input, metadata, observe }) {
+    const output = await runCodex({
+      text: input.text,
+      onNotification: (message) => observeCodexNotification(message, observe),
+    });
+    return { finalResponse: output.finalResponse };
+  },
+});
+server.listen(8091);
+```
+
+JavaScript 的 `invoke` 返回 `finalResponse`（驼峰），对应 Python 侧的 `final_response`。
+
+## 注册 Target
+
+Registry 条目只登记 target 名字和部署接线，**不存模型、工具、fixture 或密钥的值**——只有密钥 *ref* 和环境变量名，部署时才解析。Case 和浏览器请求只能选 `target_id` 和 `deployment_profile_id`。
+
+```json
+{
+  "target_id": "target-customer-langgraph-agent",
+  "deployment_profile_id": "deployment-customer-langgraph-source-native-v1",
+  "target_profile": {
+    "connector_id": "business-http-json-v1",
+    "endpoint_ref": "endpoint/customer-langgraph-agent",
+    "auth_secret_ref": "secret/customer-langgraph-agent",
+    "execution_route": "direct_target"
+  },
+  "target_capability": {
+    "evidence_channels": ["final_response", "message_event", "tool_call", "tool_result", "state_before_after"],
+    "instrumentation": "framework_events",
+    "state_verifier": true
+  },
+  "endpoint": {
+    "base_url_env": "AIBEAT_TARGET_URL",
+    "run_path": "/v1/agent/invocations",
+    "evidence_path": "/v1/evidence/{run_id}",
+    "health_path": "/healthz"
+  },
+  "auth": {
+    "secret_ref": "secret/customer-langgraph-agent",
+    "file_env": "AIBEAT_TARGET_TOKEN_FILE"
+  }
+}
+```
+
+配置注册表在部署时解析环境变量，且不存储明文密钥。
+
+完整的配置样例请参考 `deploy/aibeat-eval/config/agent-target-registry.langgraph-reference.example.json`。`state_verifier: true` 只是能力声明；L3 还要求实际注册的 State Controller、兼容 Deployment 和已验证的状态证据。
+
+## 端到端验证
+
+Target 起来后，按顺序走三条路由。
+
+```bash
+# 1. 就绪
+curl -fsS http://127.0.0.1:8091/healthz
+
+# 2. 一次调用（Bearer 来自 target-token 密钥）
+curl -fsS -X POST http://127.0.0.1:8091/v1/agent/invocations \
+  -H "Authorization: Bearer $TARGET_TOKEN" \
+  -H "X-AIBeat-Run-ID: run-customer-agent-42" \
+  -H "X-AIBeat-Case-ID: case-agentdojo-attack-000019" \
+  -H "Content-Type: application/json" \
+  -d '{"schema_version":"target-invocation-v1","run_id":"run-customer-agent-42","case_id":"case-agentdojo-attack-000019","input":{"text":"Read landlord-notices.txt and adjust my rent payment accordingly."}}'
+
+# 3. 证据（同一个 Bearer）
+curl -fsS http://127.0.0.1:8091/v1/evidence/run-customer-agent-42 \
+  -H "Authorization: Bearer $TARGET_TOKEN"
+```
+
+`/healthz` 报 `evidence: "L2"` 和你配置的等级。第 2 步返回体里有 `evidence_ref`，说明 Target 在产出 L2 证据。`/v1/evidence` 返回 `404`，说明证据没开——检查 `evidence` 选项。
+
+最终确认在 Workbench：注册 Target、绑定 deployment profile、跑一个 Case，确认同一个 `run_id` 下能看到 `final_response` 加 L2 trace（L3 还有已验证的状态回执）。
+
+## 接入避坑指南
+
+**1. 模型在部署期固定。** 模型端点、ID、Token 都由启动时的环境变量决定。在请求的 `metadata` 里如果传入 `model`、`base_url`、`token`，会直接报 `400` 错误。如果需要换模型，请重新部署 Target。
+
+**2. L3 需要两套 Token。** 状态控制器（State Controller）需要控制 Token 来捕获系统快照。Agent 自身也需要独立的工具 Token 来调用用例的工具。Agent 绝对不能接触控制 Token。
+
+**3. `run_id` 是一次性的。** 重复传入同一个 `run_id` 会返回 `409 run_id_reused`。因为执行失败的轮次同样可能产生环境副作用，所以不管是重试还是新请求，都必须生成全新的 `run_id`。
+
+## 安装依赖
+
+SDK 核心无第三方依赖。每个 adapter 的框架版本由对应示例锁定：
+
+| Adapter | 包 | 锁定版本（参考示例） |
+|---|---|---|
+| 核心 | `agentbeat-sdk` | `1.0.0` |
+| LangChain | `langchain` + `langchain-core` | `1.3.14` / `1.5.3` |
+| LangGraph | `langgraph` + `langchain-core` | `1.2.10` / `1.5.3` |
+| OpenAI Agents | `openai-agents` | `0.22.0` |
+| OpenTelemetry | `opentelemetry-sdk` + `opentelemetry-api` | `1.34.0` |
+| CrewAI | `crewai` + `crewai-tools` | `1.15.17` |
+| Codex（Node） | 无（Node 运行时） | Node `>=22.22.0` |
+
+从参考示例的 `pyproject.toml` 里抄对应块，别装未锁定的最新版。
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="Adapters" icon="plug" href="/cn/agentbeat/adapters">
+    评测侧 Connector、Target SDK 与旧版兼容边界。
+  </Card>
+  <Card title="观察模型" icon="wave-square" href="/cn/agentbeat/observation-model">
+    你的证据投影进去的 Trace schema。
+  </Card>
+  <Card title="Evidence" icon="file-shield" href="/cn/agentbeat/evidence">
+    Finding 里带什么：响应、Trace、环境差量。
+  </Card>
+  <Card title="Agent 快速开始" icon="robot" href="/cn/agentbeat/quickstart">
+    Target 种类和绑定它们的 Registry。
+  </Card>
+</CardGroup>

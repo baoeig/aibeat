@@ -1,0 +1,88 @@
+---
+title: AgentBeat 概览
+description: 仓库内已实现、使用分层 Evidence 与 Go 原生编排的黑盒 HTTP Agent 评测。
+---
+
+
+AgentBeat 是一套独立产品设计，也是仓库内已实现的**黑盒 HTTP Agent Go 评测路径**。`RunAgentEvaluation` 负责调用已注册 Agent，只收集所请求观测层级真正可用的 Evidence，并生成 Utility、Security、ASR 与 Overall 指标。该运行时**不调用 Promptfoo**，也不是 PromptBeat 的一种模式。
+
+<Note>
+  当前开发仓库包含评测器源码实现、Target SDK/Adapter Kit 和站点构建的 Eval Preview。该预览包提供 `agentbeat eval-run` 与无 Key 本地契约探针，但不是 GitHub 正式 Release。已发布的 `v0.3-agentbeat-preview.1` 仍是旧适配器产品，没有 `eval-run`。
+</Note>
+
+## 适合使用 AgentBeat 的情况
+
+- HTTP Agent 不只生成文本，还会执行动作或改变状态；
+- 需要分别评测任务完成度与安全性；
+- Target 可以按需提供消息或工具 Evidence；
+- 独立环境 Controller 可以验证状态变化；
+- Evidence 缺失必须保持可见，不能被当成通过。
+
+模型与 Prompt 红队评测请使用 [PromptBeat](/cn/promptbeat/overview)。PromptBeat 当前完整流水线使用 Promptfoo；AgentBeat 的 `RunAgentEvaluation` 路径不使用 Promptfoo，也不负责生成 Prompt 攻击。
+
+## 一次运行如何工作
+
+```text
+完整 AgentCase + 已注册 Deployment + 评分 profile
+  → 协商 Target capability 与观测层级
+  → 调用 POST /v1/agent/invocations
+  → 收集 L1 / L2 / L3 Evidence
+  → deterministic component + LLM Judge component
+  → Utility · Security · ASR · Overall
+```
+
+<Steps>
+  <Step title="验证 Case 与 Deployment">
+    调用 Agent 前，评测端会检查完整 21 字段 `AgentCase`、Target Profile、Target Capability、Registry 条目、请求层级与评分 profile。
+  </Step>
+  <Step title="调用 HTTP Agent">
+    `business-http-json-v1` Connector 把可信任务发送到 `POST /v1/agent/invocations`。Endpoint 与 credential 由服务端 Registry 解析，不进入 Case。
+  </Step>
+  <Step title="收集分层 Evidence">
+    L1 使用最终响应；L2 额外获取已声明的 Target Evidence；L3 再由独立 State Controller reset、snapshot 并验证环境。
+  </Step>
+  <Step title="评分但不隐藏缺口">
+    只组合实际可用的确定性规则与 LLM Judge 评分；缺失组件显式保持不可用，Evidence 缺口与覆盖率保持可见。
+  </Step>
+  <Step title="生成显式指标">
+    Utility、Security、ASR 与 Overall 分别保留 applicability、direction、verdict、score 和 Evidence coverage。
+  </Step>
+</Steps>
+
+## 渐进式观测
+
+<CardGroup cols={3}>
+  <Card title="L1 · 最终响应" icon="message">
+    标准 HTTP 调用，无需 AgentBeat SDK。结论限定在返回响应与实际可用评分 component 范围内。
+  </Card>
+  <Card title="L2 · Target Evidence" icon="list-tree">
+    可选 `GET /v1/evidence/{run_id}` 提供已声明的消息和工具观测；该 Evidence 来源由 Target 拥有。
+  </Card>
+  <Card title="L3 · 环境状态" icon="server">
+    独立 State Controller 提供前后状态与 native verification；Agent 不自报权威状态。
+  </Card>
+</CardGroup>
+
+[了解观测模型 →](/cn/agentbeat/observation-model)
+
+## 仓库能力与公开可用性
+
+| 领域 | 评测能力 | 边界 |
+|---|---|---|
+| Target 调用 | HTTP `business-http-json-v1` | 已注册 endpoint 必须满足严格请求/响应契约 |
+| Case 契约 | 完整、环境无关的 21 字段 `AgentCase` | Case 不包含 endpoint、credential、tool、fixture 或 scorer implementation |
+| L2 收集 | 严格 `target-evidence-v1` endpoint | 可选；未声明或缺失 channel 不能被推断 |
+| L3 控制 | 已注册的独立 State Controller | 仅 L3 与兼容环境绑定需要 |
+| Cascade score | 两个正权重相加为 1 | `0.7 / 0.3` 是 profile 示例，不是硬编码默认值 |
+| Hard gate | Native Security/ASR gate | 仅在权威 L3 native Evidence 确认条件时适用 |
+| 分发状态 | 开发源码、Target SDK/Adapter Kit 与站点 Eval Preview | 预览包可运行，但不是 GitHub 正式 Release |
+
+## 准备 L1 接入
+
+如果 Agent 已提供 HTTP，先从 L1 开始；只有需要运行观测且 Target 能安全返回时再增加 L2；只有独立测试环境可以提供权威状态时再增加 L3。
+
+<CardGroup cols={3}>
+  <Card title="下载并运行" icon="rocket" href="/cn/agentbeat/quickstart" />
+  <Card title="Adapter 与 SDK" icon="plug" href="/cn/agentbeat/sdk-integration" />
+  <Card title="Evidence 与评分" icon="scale-balanced" href="/cn/agentbeat/evidence" />
+</CardGroup>

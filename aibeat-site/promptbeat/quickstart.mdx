@@ -1,0 +1,155 @@
+---
+title: Get started with PromptBeat
+description: Download the full package, preview local test cases without an API key, then connect your model and read the evaluation report.
+---
+
+Start with a local example. You do not need a model account or API key to validate the bootstrap project and preview its test cases.
+
+## 1. Download the full package
+
+Choose your operating system. These **v0.2 full packages** include the CLI, examples, Skills, Node.js and the evaluation runtime—no separate runtime install for this walkthrough.
+
+<CardGroup cols={2}>
+  <Card title="macOS · Apple Silicon" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-darwin-arm64.tar.gz">Download .tar.gz</Card>
+  <Card title="macOS · Intel" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-darwin-x64.tar.gz">Download .tar.gz</Card>
+  <Card title="Linux · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-linux-x64.tar.gz">Download .tar.gz</Card>
+  <Card title="Windows · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-windows-x64.zip">Download .zip</Card>
+</CardGroup>
+
+[Release notes and asset checksums](https://github.com/tophant-ai/aibeat/releases/tag/v0.2) · [GitHub repository](https://github.com/tophant-ai/aibeat)
+
+<Note>
+  The newer `v0.3-agentbeat-preview.1` release contains standalone executables, not these full packages. Use the version linked above to follow the bundled-example instructions below.
+</Note>
+
+## 2. Extract and open the package folder
+
+Open a terminal in the folder containing your download, then select the matching instructions.
+
+<Tabs>
+  <Tab title="macOS · Apple Silicon">
+    ```bash
+    tar -xzf promptbeat-0.2-darwin-arm64.tar.gz
+    cd promptbeat-0.2-darwin-arm64
+    ./bin/promptbeat --version
+    ```
+  </Tab>
+  <Tab title="macOS · Intel">
+    ```bash
+    tar -xzf promptbeat-0.2-darwin-x64.tar.gz
+    cd promptbeat-0.2-darwin-x64
+    ./bin/promptbeat --version
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ```bash
+    tar -xzf promptbeat-0.2-linux-x64.tar.gz
+    cd promptbeat-0.2-linux-x64
+    ./bin/promptbeat --version
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    Expand-Archive .\promptbeat-0.2-windows-x64.zip -DestinationPath .\promptbeat-unpacked
+    cd .\promptbeat-unpacked\promptbeat-0.2-windows-x64
+    .\bin\promptbeat.cmd --version
+    ```
+  </Tab>
+</Tabs>
+
+Stay in this package folder for the remaining commands. It contains `bin/`, `examples/`, `runtime/` and `promptbeat-skills/`. On macOS, if the operating system blocks the downloaded executable, review its security prompt and your organization's policy; do not disable system-wide protections.
+
+## 3. Preview cases without calling a model
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    mkdir -p artifacts
+    ./bin/promptbeat validate --config examples/bootstrap/promptbeat.yaml
+    ./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    New-Item -ItemType Directory -Force artifacts | Out-Null
+    .\bin\promptbeat.cmd validate --config examples\bootstrap\promptbeat.yaml
+    .\bin\promptbeat.cmd generate --config examples\bootstrap\promptbeat.yaml --count 5 --output artifacts\cases.json
+    ```
+  </Tab>
+</Tabs>
+
+Open **`artifacts/cases.json`** in your editor. These are test inputs, not model responses or evaluation scores. `--count 5` means up to five cases; a smaller Seed set can produce fewer. Local `generate` does not call a Target, generator or Judge.
+
+You can stop here. To have a coding assistant guide these steps, [load a PromptBeat Skill](/promptbeat/skills).
+
+## 4. Connect your model when you are ready
+
+For a real evaluation, use `examples/llm-basic/promptbeat.yaml`. Read its README, scenarios and provider settings first. This project uses three roles: an attack generator, a Judge and your target model.
+
+<Warning>
+  The full `run` sends test content to the configured providers and may incur model costs. Confirm the endpoints and scope before running it. Keep keys in local environment variables, not in prompts, YAML or committed files.
+</Warning>
+
+Replace every placeholder below with your own local settings. Unlike bootstrap, **llm-basic validation requires these variables**; validation alone does not check that a remote service or credential works.
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    export ATTACKER_MODEL_NAME='<provider:model>'
+    export ATTACKER_BASE_URL='https://your-provider.example/v1'
+    export ATTACKER_API_KEY='<set-locally>'
+    export JUDGE_MODEL_NAME='<provider:model>'
+    export JUDGE_BASE_URL='https://your-provider.example/v1'
+    export JUDGE_API_KEY='<set-locally>'
+    export TARGET_MODEL_NAME='<provider:model>'
+    export TARGET_BASE_URL='https://your-provider.example/v1'
+    export TARGET_API_KEY='<set-locally>'
+    ./bin/promptbeat validate --config examples/llm-basic/promptbeat.yaml
+    ./bin/promptbeat run --config examples/llm-basic/promptbeat.yaml --output-dir artifacts/llm-basic/run
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    $env:ATTACKER_MODEL_NAME='<provider:model>'
+    $env:ATTACKER_BASE_URL='https://your-provider.example/v1'
+    $env:ATTACKER_API_KEY='<set-locally>'
+    $env:JUDGE_MODEL_NAME='<provider:model>'
+    $env:JUDGE_BASE_URL='https://your-provider.example/v1'
+    $env:JUDGE_API_KEY='<set-locally>'
+    $env:TARGET_MODEL_NAME='<provider:model>'
+    $env:TARGET_BASE_URL='https://your-provider.example/v1'
+    $env:TARGET_API_KEY='<set-locally>'
+    .\bin\promptbeat.cmd validate --config examples\llm-basic\promptbeat.yaml
+    .\bin\promptbeat.cmd run --config examples\llm-basic\promptbeat.yaml --output-dir artifacts\llm-basic\run
+    ```
+  </Tab>
+</Tabs>
+
+`run` generates and evaluates cases through the full pipeline. It does not take the preview JSON from step 3 as input.
+
+## 5. Read the results
+
+After a successful full run, open **`artifacts/llm-basic/run/report.html`** in your browser. Inspect **`evaluation_result.json`** in the same folder for the normalized result. The folder also retains backend configuration and raw evaluation artifacts; filenames depend on the selected project paths.
+
+To render the HTML report again from an existing result:
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    ./bin/promptbeat report --input artifacts/llm-basic/run/evaluation_result.json --output artifacts/llm-basic/run/report.html
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    .\bin\promptbeat.cmd report --input artifacts\llm-basic\run\evaluation_result.json --output artifacts\llm-basic\run\report.html
+    ```
+  </Tab>
+</Tabs>
+
+No report is produced by the local preview alone. If a command fails, check the package folder, the config type and required environment variables before rerunning an evaluation.
+
+<CardGroup cols={3}>
+  <Card title="Choose scenarios" icon="list-check" href="/promptbeat/scenarios" />
+  <Card title="Read your report" icon="file-lines" href="/promptbeat/reports" />
+  <Card title="Use Skills" icon="wand-magic-sparkles" href="/promptbeat/skills" />
+</CardGroup>

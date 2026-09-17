@@ -1,0 +1,79 @@
+---
+title: Judgment
+description: How PromptBeat turns Model/Prompt responses and backend assertions into evaluation statuses.
+---
+
+
+PromptBeat judgment answers one question: did the configured Model/Prompt response satisfy the configured backend assertions?
+
+The judgment input is the response produced by the target provider, together with the scenario, case prompt, and assertion configuration. An assertion can be deterministic, or it can call a configured model-based Judge when the rubric needs interpretation.
+
+## What is evaluated
+
+<CardGroup cols={2}>
+  <Card title="Deterministic assertion" icon="ruler">
+    The assertion checks a response with a fixed rule. It is useful when the expected signal can be expressed exactly and repeated without another model call.
+  </Card>
+  <Card title="Model-based grading" icon="brain">
+    A configured Judge provider reads the case and response against a rubric. This adds a model call and its result is still recorded as part of the PromptBeat evaluation item.
+  </Card>
+</CardGroup>
+
+The Judge is separate from the target provider when the configuration makes that distinction. PromptBeat does not treat a Judge score as a replacement for the target response: the response remains the object being evaluated.
+
+## The decision path
+
+<Steps>
+  <Step title="Compile the project">
+    PromptBeat converts the project configuration into the backend configuration used for the evaluation.
+  </Step>
+  <Step title="Run the target">
+    The configured target provider receives the case prompt and returns a response.
+  </Step>
+  <Step title="Apply assertions">
+    The external backend evaluates the configured assertions. A model-based assertion may call the configured Judge provider here.
+  </Step>
+  <Step title="Normalize the result">
+    PromptBeat parses the backend result and writes the item status, reason, and any judge evidence into the normalized evaluation result.
+  </Step>
+</Steps>
+
+## Statuses
+
+| Status | Meaning |
+|---|---|
+| `PASS` | The configured assertions passed for the response. |
+| `FAIL` | At least one configured assertion failed. The normalized result can also include a corresponding finding. |
+| `REVIEW` | The available judgment signal could not be resolved cleanly to pass or fail, such as an unparseable model-based judgment. |
+| `ERROR` | The evaluation or provider operation failed. This is an execution error, not a claim that the response crossed the tested boundary. |
+
+A status is accompanied by a reason when the backend provides one. Model-based grading can also preserve raw judge output or judge evidence; neither should be confused with a deterministic proof.
+
+## Fields to inspect
+
+The normalized evaluation item carries the identifiers and response data needed to understand a verdict:
+
+| Field | Use |
+|---|---|
+| `ScenarioID`, `SeedID` | Locate the case in the configured scenario and seed set. |
+| `ProviderID` | Identify the target provider that produced the response. |
+| `CasePrompt`, `ActualOutput` | Compare the evaluated input with the target response. |
+| `Status`, `Passed`, `Reason` | Read the normalized decision and its explanation. |
+| `JudgeRawOutput`, `JudgeEvidence` | Inspect model-based grading output when it is present. |
+
+Keep the scenario, assertion or rubric, target provider, and Judge provider configuration stable when comparing runs. A changed assertion or Judge changes what the status means.
+
+<Info>
+  `promptbeat generate` is a local deterministic case-artifact command. It does not call the target or any provider and does not produce a judgment. The complete `promptbeat run` chain is different: it can call the configured generation provider, target provider, and Judge provider according to the project and backend configuration.
+</Info>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Reports" icon="file-lines" href="/promptbeat/reports">
+    Render an existing evaluation result as HTML or JSON.
+  </Card>
+  <Card title="Dataset loop" icon="rotate" href="/promptbeat/dataset-loop">
+    Build local dataset versions and adaptive cycles from evaluated candidates.
+  </Card>
+</CardGroup>

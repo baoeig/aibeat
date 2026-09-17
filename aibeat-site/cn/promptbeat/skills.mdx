@@ -1,0 +1,113 @@
+---
+title: 下载并使用 AIBeat Skill
+description: 下载六套说明包，加载到编码助手，从一次本地 PromptBeat 用例预览或编写 AgentBeat Case 开始。
+---
+
+让编码助手帮你选择命令、预览用例或排查错误。第一次试用，先选 **Run Quick Eval** 就够了。
+
+<CardGroup cols={2}>
+  <Card title="下载 AIBeat Skill · ZIP" icon="download" href="/downloads/aibeat-skill.zip">
+    六套说明包及其参考文件。`agentbeat-write-agent-cases` 还带 `scripts/pack.py`。不含评测运行时。
+  </Card>
+  <Card title="先下载 PromptBeat" icon="terminal" href="/cn/promptbeat/quickstart">
+    如果还没安装产品，先获取完整包。
+  </Card>
+</CardGroup>
+
+[ZIP 校验值](/downloads/aibeat-skill.zip.sha256) · [兼容旧版归档](/downloads/promptbeat-skills.zip) · [公开 Skills 源码](https://github.com/tophant-ai/aibeat/tree/713c2847ff80cbcbf9a2f1ca48f3c0b35c60d7d6/promptbeat-skills)
+
+ZIP 是本站提供的 AIBeat Skill 说明包。上面的公开仓库链接指向较早的源码快照，其内容可能与本包不同；v0.2 产品完整包中也有较早的 Skills 副本。下载或加载 Skill 不会安装 PromptBeat，也不会配置模型凭据。
+
+## 1. 解压 Skills ZIP
+
+用系统自带的解压工具，或在下载目录运行以下命令。请选择新目录，不要直接覆盖已有副本。
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    unzip aibeat-skill.zip -d aibeat-skill-unpacked
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    Expand-Archive .\aibeat-skill.zip -DestinationPath .\aibeat-skill-unpacked
+    ```
+  </Tab>
+</Tabs>
+
+在 `aibeat-skill-unpacked/aibeat-skill/`（或旧版归档的 `promptbeat-skills-unpacked/promptbeat-skills/`）中找到 `promptbeat-run-quick-eval/`。保留其中的 `SKILL.md` 和 `references/` 文件夹，不要只复制一个文件。`MANIFEST.json` 列出了源文件及各自的 SHA-256 校验值。
+
+## 2. 将一个 Skill 加到编码工具中
+
+打开你使用编码助手的项目。把**整个** `promptbeat-run-quick-eval` 文件夹复制到下方对应位置。如果已有同名目录，替换前先比较本地修改。各平台都可以直接用文件管理器复制。
+
+<Tabs>
+  <Tab title="Claude Code">
+    ```text
+    your-project/
+    └── .claude/skills/promptbeat-run-quick-eval/
+        ├── SKILL.md
+        └── references/cli-recipes.md
+    ```
+
+    在该项目中新开 Claude Code 会话。用 `/promptbeat-run-quick-eval` 选中 Skill，再给它下方的任务。[Claude Code Skills 文档](https://code.claude.com/docs/en/skills)。
+  </Tab>
+  <Tab title="Codex">
+    ```text
+    your-project/
+    └── .agents/skills/promptbeat-run-quick-eval/
+        ├── SKILL.md
+        └── references/cli-recipes.md
+    ```
+
+    在该项目中新开 Codex 会话。从当前版本的 Skills 界面选择 `promptbeat-run-quick-eval`，或在任务中明确指定其名称。[Codex Skills 文档](https://developers.openai.com/codex/skills)。
+  </Tab>
+  <Tab title="其他编码工具">
+    使用该工具文档规定的 Skill 目录，各工具路径并不相同。如果不支持自动发现 Skills，可以手动附上选中的 `SKILL.md`，并让助手能够读取相邻的参考文件。这是手动加载指令，不是自动安装。
+  </Tab>
+</Tabs>
+
+第一次只需加载选中的 Skill，其余技能可在需要时按同样方式添加。
+
+## 3. 给助手一个明确的开始任务
+
+将 `<package-path>` 替换为解压后的 **PromptBeat 产品包**目录，不是 Skills 目录。把下面这段话复制到编码助手：
+
+```text
+使用 promptbeat-run-quick-eval。我的 PromptBeat 产品包位于 <package-path>。
+请校验 examples/bootstrap/promptbeat.yaml，并在 artifacts/cases.json
+预览最多五条本地用例。不要调用模型或修改凭据。
+完成后告诉我输出文件保存在哪里。
+```
+
+对应的本地操作如下：
+
+```bash
+mkdir -p artifacts
+./bin/promptbeat validate --config examples/bootstrap/promptbeat.yaml
+./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
+```
+
+Windows 下，助手应按[快速开始](/cn/promptbeat/quickstart)使用 `.\bin\promptbeat.cmd` 和 PowerShell 路径。这些命令只预览测试输入，不会产生模型回答或分数。打开产品包目录下的 **`artifacts/cases.json`**，就完成了第一个任务。
+
+<Note>
+  Skill 只是给编码助手的操作指引，不是沙箱或权限控制。批准执行前请检查命令。运行 `run` 或 `eval` 时，需要先配置 Provider，再明确批准端点、测试范围和可能的模型费用。不要把凭据粘贴到对话中。
+</Note>
+
+## 接下来选哪个 Skill？
+
+| Skill 目录 | 用途 |
+| --- | --- |
+| `promptbeat-getting-started` | 找到产品包，选择第一次本地测试。 |
+| `promptbeat-run-quick-eval` | 在校验、用例预览、评测和报告之间选择正确命令。 |
+| `promptbeat-select-risk-pack` | 选择模型风险、现有场景和本地种子。 |
+| `promptbeat-debug-run` | 排查配置、路径、Provider 和结果文件错误。 |
+| `promptbeat-connect-coding-agent` | 区分“用编码助手”与“测试编码助手”，识别旧适配方式的限制。 |
+| `agentbeat-write-agent-cases` | 在 21 字段契约下编写 AgentBeat Case，并用自带的 `scripts/pack.py` 打成标准本地数据集目录。 |
+
+这些是 AIBeat Skill 说明包（当前内置 PromptBeat 工作流与一个 AgentBeat Case 编写工作流），不是 AgentBeat 安装器或证据采集器。评测 HTTP Agent，请先看 [AgentBeat 接入与版本兼容说明](/cn/agentbeat/quickstart)。
+
+<CardGroup cols={2}>
+  <Card title="接入模型并运行" icon="play" href="/cn/promptbeat/quickstart">从本地预览继续到完整评测。</Card>
+  <Card title="查看评测结果" icon="file-lines" href="/cn/promptbeat/reports">找到 HTML 报告和底层结果文件。</Card>
+</CardGroup>

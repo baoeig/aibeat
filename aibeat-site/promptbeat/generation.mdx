@@ -1,0 +1,75 @@
+---
+title: PromptBeat generation
+description: Understand the two current generation paths and when provider calls occur.
+---
+
+
+PromptBeat has two generation paths with different behavior. Distinguishing them prevents surprise model calls and misleading documentation.
+
+## 1. Local case preview
+
+```bash
+promptbeat generate \
+  --config examples/llm-basic/promptbeat.yaml \
+  --count 5 \
+  --output artifacts/cases.json
+```
+
+This command invokes the Go `GenerateCases` application path. It reads the project, builds cases from configured Scenarios and Seeds, applies the per-Scenario count limit, and writes JSON.
+
+<CardGroup cols={3}>
+  <Card title="Remote calls" icon="wifi">None from this command</Card>
+  <Card title="Target calls" icon="bullseye">None</Card>
+  <Card title="Output" icon="file-code">Local case JSON</Card>
+</CardGroup>
+
+Use it to inspect scope before any paid or side-effecting evaluation.
+
+## 2. External-backend red-team generation
+
+The complete project pipeline uses the external evaluation backend:
+
+```bash
+promptbeat run \
+  --config examples/llm-basic/promptbeat.yaml \
+  --output-dir artifacts/run
+```
+
+Its generation stage runs the backend's red-team generator with the compiled configuration. That stage can call the configured Generator Provider; the later evaluation stage calls the configured Target and can use the configured Judge.
+
+<CardGroup cols={3}>
+  <Card title="Remote calls" icon="wifi">Depends on configured Providers</Card>
+  <Card title="Target calls" icon="bullseye">Yes, during evaluation</Card>
+  <Card title="Output" icon="file-code">Backend YAML and run artifacts</Card>
+</CardGroup>
+
+<Warning>
+  Preview locally first. Before `run`, review Provider endpoints, model names, concurrency, delay, `num_tests`, and every Scenario. The full pipeline may incur cost and send test content to third-party services.
+</Warning>
+
+## Generation inputs
+
+| Input | Role |
+|---|---|
+| Target | Model/Prompt endpoint and capabilities |
+| Scenario | Risk and expected response boundary |
+| Seed | Source material used to construct probes |
+| Generator Provider | Model used by external-backend red-team generation |
+| Backend options | Number of tests, output paths, concurrency, delay, language |
+
+## Keep artifacts reviewable
+
+- Use stable Scenario and Seed IDs.
+- Write generated files beneath a bounded artifact directory.
+- Inspect generated prompts before sending them to a sensitive Target.
+- Keep credentials in environment variables.
+- Record the project commit and Provider configuration needed to reproduce a run.
+
+## Dataset generation
+
+`dataset build-version` and `dataset build-cycle` can construct larger candidate and regression artifacts. They are separate from the small local preview command and can invoke external-backend generation and evaluation. See [Dataset loop](/promptbeat/dataset-loop).
+
+<CardGroup cols={2}>
+  <Card title="Run evaluations" icon="play" href="/promptbeat/execution" />
+  <Card title="Build datasets" icon="database" href="/promptbeat/dataset-loop" />
+</CardGroup>

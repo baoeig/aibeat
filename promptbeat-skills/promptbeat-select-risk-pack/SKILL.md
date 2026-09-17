@@ -1,192 +1,58 @@
 ---
 name: promptbeat-select-risk-pack
-description: Use when a user needs help choosing Promptbeat attack goals, risk types, scenarios, seed files, dataset subscriptions, compliance profiles, or a small smoke-test scope.
+description: Use when a user needs help choosing PromptBeat model risks, scenarios, local seeds, dataset subscriptions, or a small first-test scope.
 ---
 
-# Promptbeat Select Risk Pack
+# Select a PromptBeat Risk Scope
 
-## Overview
+Work from the extracted full package root. Ask which model behavior the user
+wants to test, then inspect existing scenarios and seeds. Do not invent a risk
+pack, directory, CLI flag, coverage claim or compliance certification.
 
-Assume the user is in a downloaded full Promptbeat package root. Map their risk
-intent to existing package examples, scenarios, seeds, or subscriptions. Prefer
-inspection with `generate --count 5` before a full run.
+## Choose a starting point
 
-Hard stop: if an answer mentions `risk-packs\`, `promptbeat-risk-packs\`,
-`packs\`, `cases\`, `promptbeat -c`, `--pack`, or separate made-up YAMLs for
-one risk, rewrite it using the package examples below.
-
-## Current Starting Points
-
-| Need | Use |
-| --- | --- |
-| Normal LLM safety baseline | `examples\llm-safety-baseline\promptbeat.yaml` |
-| Small hand-written LLM smoke / learning config | `examples\llm-basic\promptbeat.yaml` |
-| HTTP business-agent authorization or refund abuse | `examples\http-agent\promptbeat.yaml` |
-| Public safety dataset seeds | `examples\dataset-subscriptions\safety-baseline\promptbeat.yaml` |
-| Reusable subscription catalog | `subscriptions\safety-baseline.yaml` |
-| China compliance profile examples | `examples\china-compliance\promptbeat.yaml` |
-| Coding-agent safety project | `examples\codex_agent\promptbeat.yaml` |
-| Prebuilt coding-agent Promptfoo YAML | `examples\codex_agent\promptfoo.effective-agent-safety.yaml` |
-
-## Selection Flow
-
-1. Ask one question and stop only if target class is unclear: normal LLM, HTTP
-   business agent, coding agent, compliance, or dataset evaluation.
-2. Choose an existing example path before suggesting custom YAML.
-3. Use full-package Windows commands first:
-   `.\bin\promptbeat.cmd validate --config <promptbeat.yaml>`.
-4. For first inspection, use:
-   `.\bin\promptbeat.cmd generate --config <promptbeat.yaml> --count 5 --output <cases.json>`.
-5. Use `scenarios list` only for built-in registry discovery. It may be sparse;
-   example-local `scenarios.yaml` and `seeds.yaml` are the primary source for
-   packaged examples.
-6. Warn that raw public datasets are not bundled before recommending dataset
-   subscriptions.
-
-Unix equivalent: `./bin/promptbeat` maps to `.\bin\promptbeat.cmd`; mention it
-briefly only when useful.
-
-## Risk Routing
-
-| User intent | Recommend | Notes |
+| Need | Existing project | Prerequisite |
 | --- | --- | --- |
-| "Basic safety baseline for a normal LLM" | `examples\llm-safety-baseline` | Direct jailbreak and system-prompt leak seeds; use this before dataset baselines. |
-| "Smallest example so I understand Promptbeat" | `examples\llm-basic` | Hand-written `t-007`, `t-002`, and `t-001` smoke seeds. |
-| "HTTP support agent / business workflow" | `examples\http-agent` | `support-cross-user-access` (`t-001`) and `support-refund-abuse` (`t-008`). |
-| "Public benchmark-style safety seeds" | `examples\dataset-subscriptions\safety-baseline` | Requires separate raw dataset files. |
-| "China compliance / regulatory profile" | `examples\china-compliance` | Includes `cisco_leaderboard` and `cn_generative_ai_basic`; start with `config inspect`. |
-| "Coding agent safety" | `examples\codex_agent\promptbeat.yaml` plus `promptbeat-connect-coding-agent` | Use the skill for runtime/provider wiring; use prebuilt Promptfoo YAML only with `promptbeat-run-quick-eval` / `eval`. |
+| No-key local preview | `examples/bootstrap/promptbeat.yaml` | Included in the v0.2 full package. Do not run a remote evaluation yet. |
+| A small model evaluation | `examples/llm-basic/promptbeat.yaml` | Provider environment variables are required for validation and the full run. |
+| Model safety baseline | `examples/llm-safety-baseline/promptbeat.yaml` | Inspect its config, scenarios, seeds and provider requirements. |
+| Example regulatory risk mapping | `examples/china-compliance/promptbeat.yaml` | Example mappings are not proof of legal compliance. |
+| Dataset subscriptions | `examples/dataset-subscriptions/safety-baseline/promptbeat.yaml` | Raw datasets are separate; inspect `subscriptions/safety-baseline.yaml` and obtain authorized local data. |
 
-## Command Rules
+If the target is a black-box HTTP Agent, explain AgentBeat instead. Legacy
+`http-agent` and coding-agent package examples do not redefine PromptBeat as the
+current AgentBeat evaluator.
 
-- Always make `cd C:\tools\promptbeat` the first line of package command blocks.
-- Always use `.\bin\promptbeat.cmd`.
-- Always use the long `--config` flag in this skill.
-- Every `generate` command in this skill must include `--config`, `--count 5`,
-  and `--output <cases.json>`.
-- Write generated cases under `artifacts\<example>\generated_cases.json`, not
-  inside `examples\`.
-- Use `.json` for generated cases in this skill unless an existing package file
-  explicitly shows another extension.
-- Keep related risks in the packaged project config. For example, HTTP
-  cross-user access and refund abuse both live in
-  `examples\http-agent\promptbeat.yaml`; do not split them into invented files.
-- Do not add a `--pack` flag. It is not part of the documented first-run
-  command surface for these package examples.
-- For Promptfoo YAML, use `eval` through `promptbeat-run-quick-eval`; do not use
-  `validate` or `generate`.
+## Preview the selected scope
 
-## Dataset Subscription Notes
+From the package root, macOS/Linux:
 
-`subscriptions/safety-baseline.yaml` currently includes:
-
-- `safety-baseline`
-- `jailbreak-baseline`
-- `overrefusal-baseline`
-- `deception-baseline`
-- `zh-safety-baseline`
-
-Use `examples/dataset-subscriptions/safety-baseline/promptbeat.yaml` as the
-working pattern for `seeds.subscriptions.file`, `include`, and per-subscription
-`limit` overrides.
-
-Raw public datasets are not included in full release packages. Ask the user to
-set a local dataset directory such as:
-
-```powershell
-$env:PROMPTBEAT_DATASETS_DIR = "C:\tools\promptbeat-datasets\raw"
+```bash
+mkdir -p artifacts
+./bin/promptbeat validate --config examples/bootstrap/promptbeat.yaml
+./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
 ```
 
-Do not present `uv run python scripts/download_datasets.py ...` as a package
-command. It is a source-checkout helper only if the user has the source repo.
-
-## First Commands
-
-Normal LLM safety baseline:
+Windows PowerShell:
 
 ```powershell
-cd C:\tools\promptbeat
-
-.\bin\promptbeat.cmd validate --config examples\llm-safety-baseline\promptbeat.yaml
-
-.\bin\promptbeat.cmd generate `
-  --config examples\llm-safety-baseline\promptbeat.yaml `
-  --count 5 `
-  --output artifacts\llm-safety-baseline\generated_cases.json
+New-Item -ItemType Directory -Force artifacts | Out-Null
+.\bin\promptbeat.cmd validate --config examples\bootstrap\promptbeat.yaml
+.\bin\promptbeat.cmd generate --config examples\bootstrap\promptbeat.yaml --count 5 --output artifacts\cases.json
 ```
 
-HTTP business agent:
+For another project, substitute the existing config path and resolve its
+prerequisites first. `--count 5` is an upper bound, not a promise of five cases.
+Inspect `artifacts/cases.json`; no target has been evaluated by `generate`.
 
-```powershell
-cd C:\tools\promptbeat
+Keep risks together in an existing project unless a real requirement justifies
+editing its local config. Do not invent `--pack`, `--quick`, `-c`, or a registry
+URL. Use `scenarios list` only for built-in discovery, not as proof that every
+example-local scenario is registered.
 
-.\bin\promptbeat.cmd validate --config examples\http-agent\promptbeat.yaml
+## Before a full run
 
-.\bin\promptbeat.cmd generate `
-  --config examples\http-agent\promptbeat.yaml `
-  --count 5 `
-  --output artifacts\http-agent\generated_cases.json
-```
-
-Dataset subscription:
-
-```powershell
-cd C:\tools\promptbeat
-
-$env:PROMPTBEAT_DATASETS_DIR = "C:\tools\promptbeat-datasets\raw"
-
-.\bin\promptbeat.cmd validate --config examples\dataset-subscriptions\safety-baseline\promptbeat.yaml
-
-.\bin\promptbeat.cmd generate `
-  --config examples\dataset-subscriptions\safety-baseline\promptbeat.yaml `
-  --count 5 `
-  --output artifacts\dataset-subscriptions\safety-baseline\generated_cases.json
-```
-
-China compliance:
-
-```powershell
-cd C:\tools\promptbeat
-
-.\bin\promptbeat.cmd config inspect --config examples\china-compliance\promptbeat.yaml
-
-.\bin\promptbeat.cmd generate `
-  --config examples\china-compliance\promptbeat.yaml `
-  --count 5 `
-  --output artifacts\china-compliance\generated_cases.json
-```
-
-Coding-agent project risk content:
-
-```powershell
-cd C:\tools\promptbeat
-
-.\bin\promptbeat.cmd validate --config examples\codex_agent\promptbeat.yaml
-
-.\bin\promptbeat.cmd generate `
-  --config examples\codex_agent\promptbeat.yaml `
-  --count 5 `
-  --output artifacts\codex_agent\generated_cases.json
-```
-
-## Common Mistakes
-
-- Do not use `.\bin\promptbeat.exe`; use the package wrapper
-  `.\bin\promptbeat.cmd`.
-- Do not omit the package-root `cd C:\tools\promptbeat` line.
-- Do not claim `quick-smoke`, `privacy-pack`, or other pack names exist unless a
-  file or command implementing them is present.
-- Do not invent directories such as `risk-packs\`, `promptbeat-risk-packs\`, or
-  `packs\`, or `cases\`.
-- Do not add `--pack` to `generate`.
-- Do not write generated output under `examples\` or switch to `.jsonl` without
-  an existing package example.
-- Do not use `promptbeat validate -c`; use
-  `.\bin\promptbeat.cmd validate --config <promptbeat.yaml>`.
-- Do not send a first-time user straight to benchmark dataset downloads when a
-  local hand-written seed example fits.
-- Do not treat dataset subscription YAML as raw dataset content.
-- Do not mix coding-agent runtime setup with scenario selection; use
-  `promptbeat-connect-coding-agent` for runtime wiring.
-- Do not use source-checkout commands such as `go run` or dataset download
-  scripts for a full-package user.
+Use `promptbeat-run-quick-eval` to choose the command. Explain which providers
+will receive test content, and ask permission for any model cost, dataset
+download or target side effects. Do not fetch raw datasets or start model calls
+merely because the user asked to select a risk. Never read or print credentials.

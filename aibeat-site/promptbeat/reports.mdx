@@ -1,0 +1,69 @@
+---
+title: Reports
+description: Render the PromptBeat evaluation result and document the artifacts the current backend pipeline writes.
+---
+
+
+`promptbeat report` renders an existing evaluation result. It does not run the target, call a Judge, or rerun the evaluation backend.
+
+```bash
+./bin/promptbeat report \
+  --input artifacts/llm-basic/run/evaluation_result.json \
+  --output artifacts/llm-basic/run/report.html
+```
+
+Use `--input` for the result path. `--eval-result` is a compatibility alias for the same input. The output extension selects the format supported by the report command:
+
+```bash
+./bin/promptbeat report \
+  --input artifacts/llm-basic/run/evaluation_result.json \
+  --output artifacts/llm-basic/run/report.json
+```
+
+## What the normalized result contains
+
+The normalized Go result is an `EvaluationResult` with the fields used by the report renderer:
+
+| Part | Contents |
+|---|---|
+| Summary | `Total`, `Passed`, `Failed`, `Review`, and `Error` counts. |
+| Items | Scenario, seed, risk, target provider, case prompt, actual output, status, reason, and optional Judge output or evidence. |
+| Findings | PromptBeat findings represented by the evaluation result when a failed item produces one. |
+
+The report is a view of this input. It does not invent a separate finding file for every failed item, and it does not create an automatic run comparison.
+
+## Real pipeline artifacts
+
+A complete project run uses the external evaluation backend and writes these default-named artifacts in its output directory:
+
+| Artifact | Role |
+|---|---|
+| `promptfoo.redteam.yaml` | Compiled backend configuration produced from the PromptBeat project. |
+| `promptfoo.generated.yaml` | Generated backend configuration used by the pipeline when generation is part of the run. |
+| `promptfoo-result.json` | Raw backend evaluation result. |
+| `evaluation_result.json` | PromptBeat's normalized evaluation result. |
+| `report.html` | HTML report generated from the normalized result. |
+
+A direct `promptbeat eval` run writes the backend result and its stdout/stderr logs under the requested output directory. It does not by itself promise a normalized `evaluation_result.json`; use the project pipeline when that normalized artifact is required.
+
+## Report output
+
+- **HTML** is the browser-readable report written to `report.html` or another `.html` path.
+- **JSON** is the structured report written to `report.json` or another `.json` path.
+
+Both formats are generated from the supplied result. The result may contain real prompts and model responses, so keep generated reports within the same handling policy as evaluation logs.
+
+<Info>
+  The current PromptBeat report contract does not include default `findings/`, `reports/`, `lineage/`, or per-case `trace/` directories. Do not document those paths as automatic outputs unless the code that produces them is added and verified separately.
+</Info>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Judgment" icon="scale-balanced" href="/promptbeat/judgment">
+    Understand `PASS`, `FAIL`, `REVIEW`, and `ERROR` in the normalized result.
+  </Card>
+  <Card title="Dataset loop" icon="rotate" href="/promptbeat/dataset-loop">
+    Inspect the local artifacts produced by dataset version and cycle builds.
+  </Card>
+</CardGroup>

@@ -1,0 +1,60 @@
+---
+title: PromptBeat or AgentBeat?
+description: Choose the evaluation product that matches your system boundary and evidence needs.
+---
+
+
+Start with the system under test, not the product name.
+
+<CardGroup cols={2}>
+  <Card title="Choose PromptBeat" icon="wand-magic-sparkles" href="/promptbeat/overview">
+    You send an input to a **model or prompt endpoint** and evaluate its response across red-team and regression scenarios.
+  </Card>
+  <Card title="Choose AgentBeat" icon="robot" href="/agentbeat/overview">
+    You invoke an **HTTP agent** and need to evaluate its final response, declared runtime Evidence, or independently verified state changes.
+  </Card>
+</CardGroup>
+
+## Three questions are usually enough
+
+1. **Is the behavior under test a model response?** Use PromptBeat.
+2. **Can the system take actions or change state behind an HTTP Agent boundary?** Use AgentBeat.
+3. **Do both layers matter?** Run both products independently. Do not interpret one product's score as evidence for the other layer.
+
+## Side-by-side
+
+| Dimension | PromptBeat | AgentBeat |
+|---|---|---|
+| Product status | Public model/Prompt evaluation package | Separate HTTP Agent evaluator plus runnable website Eval Preview; official GitHub evaluator Release pending |
+| System under test | Models and Prompt-driven endpoints | Black-box HTTP Agents |
+| Primary input | PromptBeat project, scenarios, seeds, provider config | Complete `AgentCase`, registered Target deployment, scoring profile |
+| Main runtime | Go CLI with Promptfoo | Go `RunAgentEvaluation`; does not use Promptfoo |
+| Execution backend | Promptfoo for the current red-team/evaluation pipeline | Independent native Go AgentBeat runtime; no Promptfoo |
+| Observation | Provider request/response and evaluation result | L1 final response; optional L2 Evidence; optional L3 state verification |
+| Scoring | Backend assertions/results normalized into PromptBeat artifacts | Deterministic component + LLM Judge, with tier-qualified metrics |
+| Command availability | `promptbeat run --config … --output-dir …` is publicly packaged | Website Eval Preview provides `agentbeat eval-run < eval-run.json`; older GitHub adapter Release does not |
+| SDK requirement | None | None for L1; optional JS/Python helpers for Target transport and L2 Evidence |
+| Best fit | Prompt injection, jailbreak, policy and refusal regression | Tool use, task completion, behavioral boundaries, environment impact |
+
+## When to use both
+
+A RAG assistant, coding assistant, or business automation Agent can expose both boundaries. PromptBeat can test model/Prompt response behavior. AgentBeat can separately test the Agent's externally observable behavior and state impact.
+
+```text
+Model / Prompt boundary ── PromptBeat ── response evaluation
+HTTP Agent boundary     ── AgentBeat  ── response + tier-qualified Evidence
+```
+
+Using both is an architectural choice, not a required sequence. PromptBeat does not generate mandatory inputs for AgentBeat, and AgentBeat is not a deeper mode of a PromptBeat run.
+
+## Current transition
+
+<Note>
+  AgentBeat is a separate product design and Go evaluation implementation that does not use Promptfoo. The website Eval Preview now supplies the selected `agentbeat eval-run` interface and a no-key local contract probe; it is not represented as an official GitHub Release.
+</Note>
+
+
+<CardGroup cols={2}>
+  <Card title="Run a PromptBeat evaluation" icon="terminal" href="/promptbeat/quickstart" />
+  <Card title="Integrate an AgentBeat Target" icon="network-wired" href="/agentbeat/quickstart" />
+</CardGroup>

@@ -1,0 +1,69 @@
+---
+title: 报告
+description: 渲染 PromptBeat 评测结果，并记录当前后端流程实际写出的 artifact。
+---
+
+
+`promptbeat report` 渲染已有的评测结果。它不会运行目标、调用 Judge，也不会重新执行评测后端。
+
+```bash
+./bin/promptbeat report \
+  --input artifacts/llm-basic/run/evaluation_result.json \
+  --output artifacts/llm-basic/run/report.html
+```
+
+使用 `--input` 指定结果路径。`--eval-result` 是同一个输入参数的兼容别名。输出扩展名决定 report 命令支持的格式：
+
+```bash
+./bin/promptbeat report \
+  --input artifacts/llm-basic/run/evaluation_result.json \
+  --output artifacts/llm-basic/run/report.json
+```
+
+## 规范化结果包含什么
+
+规范化的 Go 结果是 `EvaluationResult`，报告渲染器使用其中这些字段：
+
+| 部分 | 内容 |
+|---|---|
+| Summary | `Total`、`Passed`、`Failed`、`Review` 和 `Error` 计数。 |
+| Items | Scenario、Seed、Risk、目标 Provider、case Prompt、实际输出、状态、原因，以及可选的 Judge 输出或证据。 |
+| Findings | 评测结果中由失败 item 产生的 PromptBeat Finding。 |
+
+报告只是这个输入的视图。它不会为每个失败 item 凭空创建单独 Finding 文件，也不会自动生成运行对比。
+
+## 流水线真实产物
+
+完整的项目运行使用外部评测后端，并在输出目录写入这些默认名称的 artifact：
+
+| Artifact | 作用 |
+|---|---|
+| `promptfoo.redteam.yaml` | 从 PromptBeat 项目编译出的后端配置。 |
+| `promptfoo.generated.yaml` | 流程包含生成阶段时使用的后端生成配置。 |
+| `promptfoo-result.json` | 后端原始评测结果。 |
+| `evaluation_result.json` | PromptBeat 的规范化评测结果。 |
+| `report.html` | 从规范化结果生成的 HTML 报告。 |
+
+直接运行 `promptbeat eval` 会在指定输出目录写入后端结果及 stdout/stderr 日志。它本身不承诺生成规范化的 `evaluation_result.json`；需要该 artifact 时，使用项目流水线。
+
+## 报告输出
+
+- **HTML** 是写入 `report.html` 或其他 `.html` 路径的浏览器报告。
+- **JSON** 是写入 `report.json` 或其他 `.json` 路径的结构化报告。
+
+两种格式都从给定结果生成。结果可能包含真实 Prompt 和模型响应，因此生成的报告应遵守与评测日志相同的处理策略。
+
+<Info>
+  当前 PromptBeat 报告契约不包含默认的 `findings/`、`reports/`、`lineage/` 或按 case 划分的 `trace/` 目录。除非后续新增并验证了对应代码，不要把这些路径写成自动产物。
+</Info>
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="判定" icon="scale-balanced" href="/cn/promptbeat/judgment">
+    了解规范化结果中的 `PASS`、`FAIL`、`REVIEW` 和 `ERROR`。
+  </Card>
+  <Card title="数据闭环" icon="rotate" href="/cn/promptbeat/dataset-loop">
+    查看数据集版本和周期构建实际产生的本地 artifact。
+  </Card>
+</CardGroup>

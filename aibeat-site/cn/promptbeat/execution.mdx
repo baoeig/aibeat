@@ -1,0 +1,80 @@
+---
+title: PromptBeat 执行
+description: 运行完整评测流水线，控制 Provider 范围并检查归一化结果。
+---
+
+
+PromptBeat 通过已配置的外部评测后端评测模型与 Prompt 行为。应从小范围开始，并让每次远程调用都清晰可见。
+
+## 完整 Project 流水线
+
+```bash
+promptbeat run \
+  --config examples/llm-basic/promptbeat.yaml \
+  --output-dir artifacts/llm-basic/run \
+  --progress plain
+```
+
+当前 Go 应用执行五个阶段：
+
+```text
+compile → generate → validate generated cases → eval → parse
+```
+
+| 阶段 | 行为 |
+|---|---|
+| Compile | 把 PromptBeat project 转换为 backend 配置 |
+| Generate | 运行外部后端红队生成 |
+| Validate | 在 backend 支持时检查生成产物 |
+| Eval | 通过外部后端调用已配置 Target Provider |
+| Parse | 把原始结果归一化为 PromptBeat `EvaluationResult` |
+
+## 其他执行入口
+
+| 命令 | 适用情况 |
+|---|---|
+| `promptbeat pipeline run` | 需要显式完整链路命令与 backend 选择 |
+| `promptbeat run promptfoo` | 已有后端 YAML，需要直接执行 |
+| `promptbeat eval` | 已有后端 YAML，并可能需要 Provider override |
+| `promptbeat compile promptfoo` | 希望在执行前检查生成的后端 YAML |
+
+使用 `promptbeat --help` 查看当前构建中的准确 flag。
+
+## Provider 角色
+
+`examples/llm-basic` 分离了三个角色：
+
+- **Generator：**在外部后端生成阶段扩展红队 Case。
+- **Judge：**在已配置 assertion 需要时进行模型判定。
+- **Target：**被评测的模型或 Prompt endpoint。
+
+三个角色可以使用不同模型和 endpoint。Project 流水线启动前会验证环境变量 placeholder。
+
+## 成本与副作用边界
+
+<Warning>
+  完整运行可能调用三个 Provider 角色。扩展前先设置较小 `num_tests`，检查生成内容并确认 concurrency/delay。除非范围已经得到明确授权，不要把红队配置指向生产 endpoint。
+</Warning>
+
+PromptBeat 会保存 backend 返回的数据，但不能推断隐藏的模型状态或 HTTP Agent 工具活动。结果保持在响应范围内。
+
+## 输出契约
+
+输出目录默认包含：
+
+- `promptfoo.redteam.yaml`：编译后的后端配置；
+- `promptfoo.generated.yaml`：生成的 backend 产物；
+- `promptfoo-result.json`：后端原始结果；
+- `evaluation_result.json`：Go 归一化结果；
+- `report.html`：渲染后的 PromptBeat 报告。
+
+Artifact 路径只能配置在有界输出目录内。
+
+## 有意识地比较 Provider
+
+`promptbeat eval` 支持通过重复 `--provider` 或 `--provider-file` 覆盖 Provider。比较模型时应保持 Case 与 Scenario 不变，并随结果记录每项 override。
+
+<CardGroup cols={2}>
+  <Card title="判定" icon="scale-balanced" href="/cn/promptbeat/judgment" />
+  <Card title="报告" icon="file-lines" href="/cn/promptbeat/reports" />
+</CardGroup>

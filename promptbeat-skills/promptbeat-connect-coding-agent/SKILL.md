@@ -1,76 +1,44 @@
 ---
 name: promptbeat-connect-coding-agent
-description: Use when connecting Codex, Claude Code, OpenCode, OpenClaw, coding-agent CLIs, agent gateways, workspaces, sandbox policies, provider files, or trace capture to Promptbeat as an evaluation target.
+description: Use when a user wants a coding assistant to operate PromptBeat, asks about a coding-agent integration, or needs to distinguish legacy adapters from current AgentBeat evaluation.
 ---
 
-# Promptbeat Connect Coding Agent
+# PromptBeat and Coding Assistants
 
-## Overview
+## Decide which side the assistant is on
 
-Treat coding agents as runtime targets with workspace, sandbox, approval, and
-trace boundaries. Do not treat them as ordinary chat models.
+Ask whether the coding assistant will **help run PromptBeat** or is itself the
+**system under test**. Do not conflate these tasks.
 
-Assume the user downloaded and extracted the full Promptbeat package and is
-running commands from the package root. On Windows, show package commands with
-`.\bin\promptbeat.cmd` first. Mention `./bin/promptbeat` only as the Unix
-equivalent when useful.
+### Use an assistant to run PromptBeat
 
-## Choose the Runtime Path
+Load a complete Skill directory into a runtime that supports `SKILL.md`, including
+its `references/` directory. Use the runtime's documented install location; do not
+invent a universal `npx` command or assume all tools use the same directory.
+Start a fresh session and provide the extracted PromptBeat package path.
 
-| Runtime | Starting point | Status |
-| --- | --- | --- |
-| Codex SDK / Codex CLI | `examples/codex_agent/` | Runnable example. |
-| Codex app-server | `examples/codex_agent/promptbeat.app-server.yaml` | Preferred HTTP adapter shape for Codex app-server. |
-| Claude Code | `examples/agent-adapters/claude-code/` | Template requiring real runtime wiring. |
-| OpenCode | `examples/agent-adapters/opencode/` | Template requiring SDK/server wiring. |
-| OpenClaw | `examples/agent-adapters/openclaw/` | Template requiring gateway URL, key, and agent id. |
-| Inspect / benchmark harness | `agent_examples/target_lab/` | Advanced source-checkout path, not a full-package first step. |
+Use `promptbeat-getting-started` or `promptbeat-run-quick-eval` for the initial
+local bootstrap validation and case preview. If the runtime cannot discover
+Skills, explicitly attach the selected `SKILL.md` and let it read its references.
+This fallback is manual instruction loading, not automatic Skill installation.
 
-Route users in this order:
+### Evaluate the assistant as a target
 
-1. Use the Codex example first when the user can run Codex. It is the runnable
-   path for validating coding-agent safety quickly.
-2. Use Claude Code, OpenCode, and OpenClaw provider files as templates only.
-   Before eval, require a real runtime wrapper, SDK, or server; credentials;
-   an intended workspace; sandbox and approval policy; and trace capture.
-3. Use Target Lab only for advanced benchmark or Inspect harness work when the
-   user is intentionally working outside the downloaded full package.
+PromptBeat's documented product scope is Model/Prompt evaluation. Black-box HTTP
+Agent tasks belong to the independent AgentBeat evaluator. L1 requires a matching
+HTTP invocation contract; L2 evidence is optional; L3 requires an independent
+state controller. A Skill does not implement those integrations.
 
-## Required Checks
+The public `v0.3-agentbeat-preview.1` binary is an older adapter orchestrator,
+not the new `agentbeat eval-run` evaluator. Do not present it as a compatible
+release or suggest a public-source build without verifying the required files.
 
-Before running an evaluation, confirm:
+## Legacy integrations
 
-- The command is run from the full package root, or paths are absolute.
-- `working_dir` points at the intended agent workspace.
-- Sandbox and approval policy match the risk being tested.
-- Credentials are provided through environment variables, not committed YAML.
-- The adapter returns final answer plus trace evidence when available.
+Only when maintaining an existing legacy setup, read
+`references/agent-runtimes.md`. Package examples are not evidence of a verified
+runtime. Require version compatibility, explicit user approval, an isolated test
+workspace and real evidence before making claims about agent actions.
 
-Before using `promptbeat eval --provider-file`, explain that `--config` must
-point to a generated or existing promptfoo YAML. It is not a Promptbeat project
-YAML, and it is not the cases JSON produced by `promptbeat generate`.
-
-Valid ways to obtain that promptfoo YAML:
-
-- Use the promptfoo artifact written by `promptbeat run`.
-- Use the project backend output configured in
-  `examples\codex_agent\promptbeat.yaml`, normally
-  `artifacts\promptfoo.redteam.yaml`.
-- Run
-  `.\bin\promptbeat.cmd compile promptfoo --config examples\codex_agent\promptbeat.yaml --output <generated-promptfoo.yaml>`.
-
-## Load Detailed Recipes
-
-- For Codex, Claude Code, OpenCode, and OpenClaw command recipes, read
-  `references/agent-runtimes.md`.
-- For the common validate/generate/run flow, use `promptbeat-run-quick-eval`.
-
-## Common Mistakes
-
-- Do not present Claude Code, OpenCode, or OpenClaw templates as already verified.
-- Do not skip trace capture for coding-agent safety cases; final answer alone may
-  miss unsafe commands, file reads, diffs, or policy denials.
-- Do not tell full-package users to use source-checkout commands as the normal
-  path.
-- Do not use host CLI binaries for formal benchmark-style Target Lab runs when
-  the harness expects sandbox-local binaries.
+Do not change sandbox policies, download tools, inspect credentials, start agent
+processes or call model providers simply to load or test a Skill.

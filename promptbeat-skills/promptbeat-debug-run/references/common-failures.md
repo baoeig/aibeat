@@ -1,4 +1,9 @@
-# Common Promptbeat Failures
+# Common PromptBeat Failures
+
+These are diagnostic recipes, not permission to execute. `run`/`eval` require
+confirmed provider configuration, scope and user approval. Never read or print
+credential values. Coding-agent examples below apply only to existing legacy
+setups, not the current independent AgentBeat evaluator.
 
 ## Command Uses the Wrong Config Type
 
@@ -74,8 +79,10 @@ Do not commit real keys.
 
 ## Dataset Subscription Loads Nothing
 
-Raw benchmark datasets are not bundled in release examples. Download the needed
-datasets before expecting all subscription sources to load.
+Raw benchmark datasets are not bundled in release examples. Obtain the user's
+authorization and an approved data source before downloading anything. The
+following is a **source-checkout-only** helper, not a release-package command;
+verify the script exists. Otherwise ask for an existing local dataset path.
 
 ```bash
 uv run python scripts/download_datasets.py --only harmbench jbb_behaviors do_not_answer simple_safety_tests beaver_tails
@@ -90,7 +97,9 @@ Then validate the subscription example:
 
 ## Report Input Is Wrong
 
-Use `evaluation_result.json` from an eval/run output directory:
+Use `evaluation_result.json` from a successful project `run`, or
+`promptfoo-result.json` from direct `eval`. Do not claim direct `eval` writes the
+normalized result automatically. Example for project `run`:
 
 ```bash
 ./bin/promptbeat report \

@@ -1,0 +1,49 @@
+---
+title: 核心概念
+description: 分别解释 PromptBeat 与 AgentBeat 的最小术语集，不混淆两套现行契约。
+---
+
+
+PromptBeat 与 AgentBeat 都强调显式评测输入和可检查结果，但两者使用不同的 schema 与运行时，因此需要分别理解各自术语。
+
+## PromptBeat 术语
+
+| 术语 | 含义 |
+|---|---|
+| **Target** | 被评测的模型或 Prompt 驱动 endpoint。 |
+| **Scenario** | 需要测试的风险或行为，以及预期响应边界。 |
+| **Seed** | 用于构造具体测试 Case 的源材料。 |
+| **Project config** | 选择 Target、Scenario、Seed、Provider 与外部评测后端选项的 PromptBeat YAML。 |
+| **Generated case** | `promptbeat generate` 生成的确定性本地 Case 产物。 |
+| **Evaluation result** | 从外部执行后端解析得到的归一化结果。 |
+| **Dataset version** | 用于可重复回归的一组已选择、已版本化 Case。 |
+
+完整流程见 [PromptBeat 概览](/cn/promptbeat/overview)。
+
+## AgentBeat 术语
+
+| 术语 | 含义 |
+|---|---|
+| **AgentCase** | 描述任务、风险、预期行为和观测层级的完整 21 字段评测 Case；不拥有 endpoint 或 secret。 |
+| **Target Profile** | 由评测端拥有的 HTTP Agent Deployment 身份与 Connector 计划。 |
+| **Target Capability** | 已注册 Deployment 声明的输入、环境与 Evidence channel。 |
+| **Deployment Profile** | Registry 中绑定 Profile、Capability、endpoint、credential 与可选 State Controller 的条目。 |
+| **Observation tier** | L1 最终响应、L2 Target Evidence 或 L3 独立环境状态校验。 |
+| **Evidence** | 确定性检查和 LLM Judge 使用的分层观测；未观测数据保持不可用。 |
+| **Scoring profile** | 大于 0 且总和为 1 的 deterministic 与 Judge component 权重。 |
+| **Metrics** | Utility、Security、ASR 与 Overall；每项保留 applicability 和 coverage。 |
+
+AgentBeat 协议见[观测模型](/cn/agentbeat/observation-model)与[证据和评分](/cn/agentbeat/evidence)。
+
+## 名称相近，但不能混用
+
+| 不应合并 | 原因 |
+|---|---|
+| PromptBeat Scenario 与 AgentCase | 两者使用不同的 schema，不能互换。 |
+| PromptBeat Provider 与 AgentBeat Target Deployment | 前者配置使用外部后端的模型流程；后者是评测端拥有的 HTTP Agent Registry 条目。 |
+| PromptBeat result 与 AgentBeat Evidence | Provider 评测结果不能证明工具调用或状态变化。 |
+| LLM Judge 与 native L3 verification | Judge 解释 Evidence；native verification 观测权威环境状态，并可成为 hard gate。 |
+
+## 一个实用原则
+
+先问评测端实际能观测到什么。只有响应时，只做响应范围的结论；已注册 Target 额外返回声明的 Evidence 时，标为 L2；独立 Controller 验证了状态时，标为 L3。

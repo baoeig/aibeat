@@ -14,7 +14,8 @@
     <a href="#promptbeat"><b>PromptBeat</b></a> ·
     <a href="#agentbeat"><b>AgentBeat</b></a> ·
     <a href="https://github.com/tophant-ai/aibeat/releases/latest"><b>Releases</b></a> ·
-    <a href="website/index.mdx"><b>Documentation</b></a> ·
+    <a href="aibeat-site/index.mdx"><b>Site docs</b></a> ·
+    <a href="docs/README.md"><b>Docs index</b></a> ·
     <a href="README.zh-CN.md"><b>中文</b></a>
   </p>
 
@@ -206,23 +207,27 @@ PromptBeat Skills guide compatible coding agents through setup, target
 connection, risk selection, evaluation, and troubleshooting. They use the
 existing product commands rather than introducing a second interface.
 
-See [PromptBeat Skills](website/getting-started/skills.mdx).
+See [PromptBeat Skills](aibeat-site/promptbeat/skills.mdx).
 
 ## Repository scope
 
-This public repository is the distribution surface for documentation, runnable
-examples, Skills, and release artifacts. Product implementation source and the
-full build pipeline are maintained separately. Public releases provide signed
-or checksummed artifacts without requiring a source checkout.
+This public repository distributes product documentation, runnable examples,
+Skills, the AgentBeat JS SDK, and the Mintlify site sources under
+[`aibeat-site/`](aibeat-site/). Full product implementation (`core/`, `api/`),
+internal evaluation datasets, and deployment pipelines stay in the private
+maintenance repository. Public [Releases](https://github.com/tophant-ai/aibeat/releases)
+provide checksummed installers without requiring a source checkout.
 
 Keep credentials in environment variables, review generated cases before
 running costly evaluations, and use a restricted workspace for agent targets.
 
 ## Documentation
 
-[Overview](website/index.mdx) ·
-[Configuration](website/concepts/configuration-model.mdx) ·
-[Datasets](website/datasets/catalog.mdx) ·
-[Reports](website/reports/comprehensive-reports.mdx) ·
+Prefer the docs tree over packing long guides into this README:
+
+[Docs index](docs/README.md) ·
+[AgentBeat overview](docs/agentbeat/overview.md) ·
+[PromptBeat overview](docs/promptbeat/overview.md) ·
+[Site home](aibeat-site/index.mdx) ·
 [Releases](https://github.com/tophant-ai/aibeat/releases) ·
 [Discord](https://discord.gg/8A6mFckxZ)

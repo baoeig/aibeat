@@ -1,138 +1,68 @@
-# CLI Recipes
+# CLI recipes
 
-Use these from the downloaded full package root. PowerShell commands come first;
-Unix equivalents use `./bin/promptbeat` with the same arguments.
+Run from the extracted full PromptBeat package root. These are command templates,
+not recorded successful evaluations. Confirm provider configuration and user
+approval before any full run or eval; both can call models and incur costs.
 
-## Project Config Full Run
-
-Use when the user has a Promptbeat project config.
-
-```powershell
-.\bin\promptbeat.cmd validate --config examples\http-agent\promptbeat.yaml
-
-.\bin\promptbeat.cmd run `
-  --config examples\http-agent\promptbeat.yaml `
-  --output-dir artifacts\http-agent\run
-```
-
-Unix equivalent:
+## Local preview without keys
 
 ```bash
-./bin/promptbeat validate --config examples/http-agent/promptbeat.yaml
-./bin/promptbeat run --config examples/http-agent/promptbeat.yaml --output-dir artifacts/http-agent/run
+mkdir -p artifacts
+./bin/promptbeat validate --config examples/bootstrap/promptbeat.yaml
+./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
 ```
 
-`run` runs the project pipeline and prints a summary like:
-
-```text
-Results: total=<n> passed=<n> failed=<n>
-```
-
-It compiles, generates, evaluates, and writes run artifacts. Generated case
-inspection is optional; do not insert `generate` before `run` unless the user
-asks to inspect cases first.
-
-## Generate Only
-
-Use when the user wants to inspect generated attacks without evaluating the
-target. This writes cases JSON only. It does not evaluate the target and does
-not produce promptfoo YAML for `eval`.
+PowerShell:
 
 ```powershell
-.\bin\promptbeat.cmd generate `
-  --config examples\http-agent\promptbeat.yaml `
-  --count 5 `
-  --output artifacts\http-agent\generated_cases.json
+New-Item -ItemType Directory -Force artifacts | Out-Null
+.\bin\promptbeat.cmd validate --config examples\bootstrap\promptbeat.yaml
+.\bin\promptbeat.cmd generate --config examples\bootstrap\promptbeat.yaml --count 5 --output artifacts\cases.json
 ```
 
-Unix equivalent:
+The case count is an upper bound. Inspect this local JSON as test inputs, not
+results. `generate` does not create the backend YAML used by `eval`.
+
+## Full project run after provider setup and approval
+
+Read `examples/llm-basic/README.md` and configure the referenced environment
+variables locally. Do not ask for, print or save their secret values.
 
 ```bash
-./bin/promptbeat generate --config examples/http-agent/promptbeat.yaml --count 5 --output artifacts/http-agent/generated_cases.json
+./bin/promptbeat validate --config examples/llm-basic/promptbeat.yaml
+./bin/promptbeat run --config examples/llm-basic/promptbeat.yaml --output-dir artifacts/llm-basic/run
 ```
 
-## Inspect Resolved Inputs
+PowerShell uses `.\bin\promptbeat.cmd` with the same arguments and Windows paths.
+`run` compiles configuration, generates/evaluates cases and parses results. A
+standalone local `generate` is not a required input to this pipeline.
 
-Use when the user is unsure which target, scenario, seed, or backend output is
-resolved.
+## Existing backend YAML
 
-```powershell
-.\bin\promptbeat.cmd config inspect --config examples\http-agent\promptbeat.yaml
-```
-
-Unix equivalent:
+Use only an existing backend config, never a PromptBeat project YAML or cases
+JSON. Technical names such as `promptfoo-result.json` are retained unchanged.
 
 ```bash
-./bin/promptbeat config inspect --config examples/http-agent/promptbeat.yaml
+./bin/promptbeat eval --config path/to/promptfoo.yaml --output-dir artifacts/eval
 ```
 
-## Existing Promptfoo YAML
+Direct `eval` writes backend artifacts such as `promptfoo-result.json`. Do not
+promise a normalized result or HTML report from this command alone.
 
-Use when the user already has a generated promptfoo YAML file. Do not pass a
-Promptbeat project YAML or generated cases JSON to `eval`, and do not say
-`promptbeat generate` creates this YAML; `generate` writes cases JSON only.
+## View a completed result
 
-```powershell
-.\bin\promptbeat.cmd eval `
-  --config artifacts\coding-agent\generate\generated_redteam.yaml `
-  --output-dir artifacts\eval\run-001 `
-  --run-id run-001
-```
-
-With provider override:
-
-```powershell
-$providerFile = "examples\agent-adapters\openclaw\providers.openclaw.yaml"
-
-.\bin\promptbeat.cmd eval `
-  --config artifacts\coding-agent\generate\generated_redteam.yaml `
-  --provider-file $providerFile `
-  --output-dir artifacts\openclaw\eval
-```
-
-Existing example provider files include
-`examples\agent-adapters\openclaw\providers.openclaw.yaml`,
-`examples\agent-adapters\claude-code\providers.claude-code.yaml`, and
-`examples\agent-adapters\opencode\providers.opencode.yaml`.
-
-Direct `eval` writes Promptfoo eval artifacts such as `promptfoo-result.json`,
-`promptfoo.eval.stdout.log`, and `promptfoo.eval.stderr.log` under the output
-directory. It does not write Promptbeat `evaluation_result.json` or `report.html`
-automatically. To create HTML from the raw Promptfoo result, pass
-`promptfoo-result.json` to `report --input`.
-
-Unix equivalent:
+After a successful project run, inspect `evaluation_result.json` and `report.html`
+under the run output directory. To render HTML again:
 
 ```bash
-./bin/promptbeat eval --config artifacts/coding-agent/generate/generated_redteam.yaml --provider-file examples/agent-adapters/openclaw/providers.openclaw.yaml --output-dir artifacts/openclaw/eval
+./bin/promptbeat report --input artifacts/llm-basic/run/evaluation_result.json --output artifacts/llm-basic/run/report.html
 ```
 
-## Report From Existing Result
-
-Use when the user has either Promptbeat `evaluation_result.json` from project
-`run`, or raw Promptfoo `promptfoo-result.json` from direct `eval`.
-
-```powershell
-.\bin\promptbeat.cmd report `
-  --input artifacts\eval\run-001\evaluation_result.json `
-  --output artifacts\eval\run-001\report.html
-```
-
-Raw Promptfoo result from direct `eval`:
-
-```powershell
-.\bin\promptbeat.cmd report `
-  --input artifacts\eval\run-001\promptfoo-result.json `
-  --output artifacts\eval\run-001\report.html
-```
-
-`--eval-result artifacts\eval\run-001\evaluation_result.json` is accepted in
-place of `--input`. Prefer `--input` in examples because it also reads naturally
-for raw Promptfoo result files. If `--output` is omitted, Promptbeat writes
-`report.html` next to the input.
-
-Unix equivalent:
+For a direct `eval` result:
 
 ```bash
-./bin/promptbeat report --input artifacts/eval/run-001/promptfoo-result.json --output artifacts/eval/run-001/report.html
+./bin/promptbeat report --input artifacts/eval/promptfoo-result.json --output artifacts/eval/report.html
 ```
+
+Do not invent result counts, scores or output paths. Check the filesystem and
+command exit status. `report` is a local operation, not a rerun of the target.

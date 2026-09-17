@@ -1,0 +1,60 @@
+---
+title: 选择 PromptBeat 还是 AgentBeat？
+description: 按被测系统边界和证据需求选择对应的评测产品。
+---
+
+
+先看被测系统，再看产品名称。
+
+<CardGroup cols={2}>
+  <Card title="选择 PromptBeat" icon="wand-magic-sparkles" href="/cn/promptbeat/overview">
+    你向**模型或 Prompt endpoint**发送输入，并在红队与回归 Scenario 中评测响应。
+  </Card>
+  <Card title="选择 AgentBeat" icon="robot" href="/cn/agentbeat/overview">
+    你调用一个 **HTTP Agent**，需要评测最终响应、已声明的运行 Evidence，或独立校验的状态变化。
+  </Card>
+</CardGroup>
+
+## 通常只需回答三个问题
+
+1. **被测行为是模型响应吗？**选择 PromptBeat。
+2. **系统能否在 HTTP Agent 边界后执行动作或改变状态？**选择 AgentBeat。
+3. **两个层面都重要吗？**分别运行两款产品，不要把一个产品的分数当成另一层的证据。
+
+## 并列对比
+
+| 维度 | PromptBeat | AgentBeat |
+|---|---|---|
+| 产品状态 | 已公开发布的模型与 Prompt 评测包 | 独立 HTTP Agent 评测器与可运行站点 Eval Preview；GitHub 正式评测器 Release 待发布 |
+| 被测对象 | 模型与 Prompt 驱动的 endpoint | 黑盒 HTTP Agent |
+| 主要输入 | PromptBeat project、Scenario、Seed、Provider 配置 | 完整 `AgentCase`、已注册 Target Deployment、评分 profile |
+| 主运行时 | Go CLI + Promptfoo | Go `RunAgentEvaluation`；不使用 Promptfoo |
+| 执行后端 | 当前红队与评测流水线使用 Promptfoo | AgentBeat 使用独立原生 Go 运行时，不使用 Promptfoo |
+| 观测范围 | Provider 请求/响应与评测结果 | L1 最终响应；可选 L2 Evidence；可选 L3 状态校验 |
+| 评分 | 将后端 assertion/result 归一化为 PromptBeat 产物 | 确定性 component + LLM Judge，并输出带层级范围的指标 |
+| 命令可用性 | `promptbeat run --config … --output-dir …` 已进入公开产品包 | 站点 Eval Preview 提供 `agentbeat eval-run < eval-run.json`；GitHub 旧适配器 Release 不支持 |
+| SDK 要求 | 无 | L1 无需 SDK；JS/Python helper 可选用于 Target transport 与 L2 Evidence |
+| 适用场景 | Prompt injection、越狱、策略与拒答回归 | 工具使用、任务完成、行为边界、环境影响 |
+
+## 什么时候同时使用
+
+RAG 助手、Coding Assistant 或业务自动化 Agent 可能同时暴露两个边界。PromptBeat 可以评测模型/Prompt 的响应行为；AgentBeat 可以独立评测 Agent 对外可观察的行为与状态影响。
+
+```text
+模型 / Prompt 边界 ── PromptBeat ── 响应评测
+HTTP Agent 边界    ── AgentBeat  ── 响应 + 分层 Evidence
+```
+
+同时使用是一种架构选择，不是强制顺序。PromptBeat 不负责为 AgentBeat 生成必需输入，AgentBeat 也不是 PromptBeat 运行的“更深模式”。
+
+## 当前过渡状态
+
+<Note>
+  AgentBeat 是独立产品设计和独立 Go 评测实现，而且不使用 Promptfoo。站点 Eval Preview 现已提供选定的 `agentbeat eval-run` 接口和无 Key 本地契约探针；它不会被表述为 GitHub 正式 Release。
+</Note>
+
+
+<CardGroup cols={2}>
+  <Card title="运行 PromptBeat 评测" icon="terminal" href="/cn/promptbeat/quickstart" />
+  <Card title="接入 AgentBeat Target" icon="network-wired" href="/cn/agentbeat/quickstart" />
+</CardGroup>

@@ -1,0 +1,55 @@
+---
+title: AI Beat overview
+description: Two separate evaluation products for model/prompt and HTTP Agent boundaries, with explicit public availability.
+---
+
+
+AI Beat develops evaluation tools for two distinct system boundaries. PromptBeat measures model and prompt behavior. AgentBeat measures an HTTP agent's response and, when available, its execution Evidence and environment impact.
+
+<CardGroup cols={2}>
+  <Card title="PromptBeat" icon="wand-magic-sparkles" href="/promptbeat/overview">
+    **System under test:** model or prompt endpoint<br />
+    **Runtime:** Go CLI with the current Promptfoo evaluation backend
+    **Primary use:** red teaming, evaluation, and regression datasets
+  </Card>
+  <Card title="AgentBeat" icon="robot" href="/agentbeat/overview">
+    **System under test:** black-box HTTP agent<br />
+    **Runtime:** Go `RunAgentEvaluation` (does not use Promptfoo)
+    **Primary use:** behavioral evaluation with tier-qualified Evidence; source and website Eval Preview available, GitHub evaluator Release pending
+  </Card>
+</CardGroup>
+
+## Separate by design
+
+Neither product is a mode or prerequisite of the other. PromptBeat is publicly downloadable and uses Promptfoo in its current full evaluation pipeline. AgentBeat has a separate Go `RunAgentEvaluation` implementation and Target SDK/Adapter Kits in this development repository; that path does not use Promptfoo. A website-built Eval Preview now provides the runnable `agentbeat eval-run` path and local contract probe. A matching official GitHub evaluator Release is still pending.
+
+A team may use both for a full application, but the runs answer different questions:
+
+- Did the model or prompt cross a response boundary?
+- Did the agent complete the task without crossing a behavioral or environment boundary?
+
+## What both products value
+
+- **Explicit cases:** inputs and expected behavior are reviewable rather than hidden in a dashboard.
+- **Inspectable results:** commands and protocol responses remain available as artifacts.
+- **Evidence scope:** conclusions are qualified by what was observed.
+- **Repeatability:** stable scenarios and datasets support regression after a model, prompt, policy, or agent change.
+- **Open development:** current contracts and the development-repository implementation are reviewable; public executable availability is stated separately.
+
+These are shared principles, not a claim that the current products already share one configuration schema, registry, report, or CLI surface.
+
+## Evaluation, not runtime enforcement
+
+AI Beat runs acceptance, red-team, and regression evaluations. It does not sit in your production request path as a policy gateway, firewall, or runtime blocker.
+
+<CardGroup cols={3}>
+  <Card title="Choose a product" icon="scale-balanced" href="/about/promptbeat-vs-agentbeat">
+    Compare targets, runtimes, Evidence, and current commands.
+  </Card>
+  <Card title="PromptBeat quickstart" icon="terminal" href="/promptbeat/quickstart">
+    Run a model or prompt evaluation.
+  </Card>
+  <Card title="AgentBeat quickstart" icon="network-wired" href="/agentbeat/quickstart">
+    Integrate an HTTP Agent Target.
+  </Card>
+</CardGroup>

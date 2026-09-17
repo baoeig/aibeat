@@ -1,0 +1,155 @@
+---
+title: 开始使用 PromptBeat
+description: 下载完整包，无需 API Key 预览本地用例，再接入模型并查看评测报告。
+---
+
+先用本地示例试一下。校验 bootstrap 项目和预览测试用例，不需要模型账号或 API Key。
+
+## 1. 下载完整包
+
+按操作系统选择。以下 **v0.2 完整包**包含 CLI、示例、Skills、Node.js 和评测运行时，完成本文步骤不需要另装运行时。
+
+<CardGroup cols={2}>
+  <Card title="macOS · Apple Silicon" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-darwin-arm64.tar.gz">下载 .tar.gz</Card>
+  <Card title="macOS · Intel" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-darwin-x64.tar.gz">下载 .tar.gz</Card>
+  <Card title="Linux · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-linux-x64.tar.gz">下载 .tar.gz</Card>
+  <Card title="Windows · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-windows-x64.zip">下载 .zip</Card>
+</CardGroup>
+
+[版本说明与文件校验值](https://github.com/tophant-ai/aibeat/releases/tag/v0.2) · [GitHub 仓库](https://github.com/tophant-ai/aibeat)
+
+<Note>
+  较新的 `v0.3-agentbeat-preview.1` 提供单独的可执行文件，并非这些完整包。按本文使用内置示例时，请下载上面链接的版本。
+</Note>
+
+## 2. 解压并进入包目录
+
+在下载文件所在的文件夹打开终端，选择对应的操作系统。
+
+<Tabs>
+  <Tab title="macOS · Apple Silicon">
+    ```bash
+    tar -xzf promptbeat-0.2-darwin-arm64.tar.gz
+    cd promptbeat-0.2-darwin-arm64
+    ./bin/promptbeat --version
+    ```
+  </Tab>
+  <Tab title="macOS · Intel">
+    ```bash
+    tar -xzf promptbeat-0.2-darwin-x64.tar.gz
+    cd promptbeat-0.2-darwin-x64
+    ./bin/promptbeat --version
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ```bash
+    tar -xzf promptbeat-0.2-linux-x64.tar.gz
+    cd promptbeat-0.2-linux-x64
+    ./bin/promptbeat --version
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    Expand-Archive .\promptbeat-0.2-windows-x64.zip -DestinationPath .\promptbeat-unpacked
+    cd .\promptbeat-unpacked\promptbeat-0.2-windows-x64
+    .\bin\promptbeat.cmd --version
+    ```
+  </Tab>
+</Tabs>
+
+后续命令都在这个包目录运行。目录内应有 `bin/`、`examples/`、`runtime/` 和 `promptbeat-skills/`。如果 macOS 阻止运行下载的程序，请先查看系统安全提示及组织要求，不要关闭系统级保护。
+
+## 3. 不调用模型，先预览用例
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    mkdir -p artifacts
+    ./bin/promptbeat validate --config examples/bootstrap/promptbeat.yaml
+    ./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    New-Item -ItemType Directory -Force artifacts | Out-Null
+    .\bin\promptbeat.cmd validate --config examples\bootstrap\promptbeat.yaml
+    .\bin\promptbeat.cmd generate --config examples\bootstrap\promptbeat.yaml --count 5 --output artifacts\cases.json
+    ```
+  </Tab>
+</Tabs>
+
+用编辑器打开 **`artifacts/cases.json`**。这里是测试输入，不是模型回答或评测分数。`--count 5` 表示最多五条；种子较少时，实际用例也会更少。本地 `generate` 不调用被测模型、生成模型或 Judge。
+
+你可以先停在这里。想让编码助手带你完成这些步骤，可以[加载 PromptBeat Skill](/cn/promptbeat/skills)。
+
+## 4. 准备好后，接入自己的模型
+
+实际评测使用 `examples/llm-basic/promptbeat.yaml`。先阅读该示例的 README、场景和 Provider 配置。项目包含三个角色：攻击生成模型、评判模型，以及你的被测模型。
+
+<Warning>
+  完整 `run` 会把测试内容发送给配置的 Provider，可能产生模型费用。运行前请确认端点和测试范围。密钥只放在本地环境变量中，不要写入提示词、YAML 或提交到仓库。
+</Warning>
+
+将下面的占位值替换为自己的本地配置。与 bootstrap 不同，**llm-basic 在校验时就需要这些变量**；校验通过不代表远端服务或凭据可用。
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    export ATTACKER_MODEL_NAME='<provider:model>'
+    export ATTACKER_BASE_URL='https://your-provider.example/v1'
+    export ATTACKER_API_KEY='<set-locally>'
+    export JUDGE_MODEL_NAME='<provider:model>'
+    export JUDGE_BASE_URL='https://your-provider.example/v1'
+    export JUDGE_API_KEY='<set-locally>'
+    export TARGET_MODEL_NAME='<provider:model>'
+    export TARGET_BASE_URL='https://your-provider.example/v1'
+    export TARGET_API_KEY='<set-locally>'
+    ./bin/promptbeat validate --config examples/llm-basic/promptbeat.yaml
+    ./bin/promptbeat run --config examples/llm-basic/promptbeat.yaml --output-dir artifacts/llm-basic/run
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    $env:ATTACKER_MODEL_NAME='<provider:model>'
+    $env:ATTACKER_BASE_URL='https://your-provider.example/v1'
+    $env:ATTACKER_API_KEY='<set-locally>'
+    $env:JUDGE_MODEL_NAME='<provider:model>'
+    $env:JUDGE_BASE_URL='https://your-provider.example/v1'
+    $env:JUDGE_API_KEY='<set-locally>'
+    $env:TARGET_MODEL_NAME='<provider:model>'
+    $env:TARGET_BASE_URL='https://your-provider.example/v1'
+    $env:TARGET_API_KEY='<set-locally>'
+    .\bin\promptbeat.cmd validate --config examples\llm-basic\promptbeat.yaml
+    .\bin\promptbeat.cmd run --config examples\llm-basic\promptbeat.yaml --output-dir artifacts\llm-basic\run
+    ```
+  </Tab>
+</Tabs>
+
+`run` 会按完整流程生成并评测用例，不会把第 3 步的预览 JSON 当作输入。
+
+## 5. 查看结果
+
+完整运行成功后，用浏览器打开 **`artifacts/llm-basic/run/report.html`**。同目录的 **`evaluation_result.json`** 是归一化结果。该目录也会保留评测后端配置与原始产物，具体文件名取决于项目配置的路径。
+
+需要根据已有结果重新生成 HTML 报告时：
+
+<Tabs>
+  <Tab title="macOS / Linux">
+    ```bash
+    ./bin/promptbeat report --input artifacts/llm-basic/run/evaluation_result.json --output artifacts/llm-basic/run/report.html
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    .\bin\promptbeat.cmd report --input artifacts\llm-basic\run\evaluation_result.json --output artifacts\llm-basic\run\report.html
+    ```
+  </Tab>
+</Tabs>
+
+仅运行本地预览不会生成报告。如果命令报错，先检查包目录、配置类型和所需环境变量，再决定是否重跑评测。
+
+<CardGroup cols={3}>
+  <Card title="选择测试场景" icon="list-check" href="/cn/promptbeat/scenarios" />
+  <Card title="读懂评测报告" icon="file-lines" href="/cn/promptbeat/reports" />
+  <Card title="使用 Skills" icon="wand-magic-sparkles" href="/cn/promptbeat/skills" />
+</CardGroup>

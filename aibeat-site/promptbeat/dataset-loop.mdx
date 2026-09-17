@@ -1,0 +1,143 @@
+---
+title: Dataset loop
+description: Build local PromptBeat dataset versions and adaptive cycles from Model/Prompt evaluation artifacts.
+---
+
+
+PromptBeat's dataset loop is a local artifact workflow for Model/Prompt evaluation. It turns seeds and evaluated candidates into versioned files that can be inspected, reused, and replayed. It is not a hosted dataset service.
+
+```text
+local seeds and project config
+  -> dataset build-version or dataset build-cycle
+  -> candidate generation and external-backend evaluation
+  -> quality, promotion, rewrite, and lineage artifacts
+  -> local dataset files for the next run
+```
+
+## Choose a build command
+
+<CardGroup cols={2}>
+  <Card title="Build one version" icon="file-plus">
+    `dataset build-version` creates one dataset version artifact directory from a project config. Use it when the candidate set and evaluation should be captured as one build.
+  </Card>
+  <Card title="Build an adaptive cycle" icon="rotate">
+    `dataset build-cycle` runs multiple rounds with a candidate budget and deterministic cycle seed. Use it when later rounds should use the recorded results of earlier rounds.
+  </Card>
+</CardGroup>
+
+### Build one version
+
+```bash
+./bin/promptbeat dataset build-version \
+  --config examples/bootstrap/promptbeat.yaml \
+  --dataset-id safety-seed-pool \
+  --version v1 \
+  --output artifacts/dataset-v1 \
+  --expansion-count 2
+```
+
+The required project config, dataset id, version, and output directory are explicit. `--expansion-count` is optional; other provider, strategy, and model-discovery flags are available in the CLI usage.
+
+### Build an adaptive cycle
+
+```bash
+./bin/promptbeat dataset build-cycle \
+  --config examples/bootstrap/promptbeat.yaml \
+  --dataset-id safety-redteam-v1 \
+  --version v0.1 \
+  --output artifacts/datasets/safety-redteam-v1/v0.1 \
+  --rounds 2 \
+  --candidate-budget 10 \
+  --seed 42
+```
+
+Both build commands use external-backend generation and evaluation paths. Depending on the project and provider configuration, they can call a generation provider, target provider, or Judge provider and can incur provider cost. They are different from the local deterministic `promptbeat generate` preview.
+
+## Version-build artifacts
+
+`dataset build-version` writes these files in its output directory:
+
+```text
+artifacts/dataset-v1/
+  dataset_version.json
+  candidate_pool.json
+  evaluation_result.json
+  promotion_seeds.json
+  rewrite_seeds.json
+  lineage.json
+  report.json
+  model_discovery.json
+  report.html
+```
+
+`model_discovery.json` is part of the artifact contract even when model discovery is not used. The JSON files record the build inputs, candidates, evaluation, promotion and rewrite outputs, lineage, and report data produced by the implementation.
+
+## Cycle artifacts
+
+`dataset build-cycle` writes a cycle-level set plus one directory for each completed round:
+
+```text
+artifacts/datasets/safety-redteam-v1/v0.1/
+  dataset_manifest.json
+  search_tree.json
+  candidate_ledger.jsonl
+  transition_log.jsonl
+  final_cases.jsonl
+  final_promoted_seeds.json
+  lineage.jsonl
+  metrics.json
+  round-01/
+    round_manifest.json
+    allocations.json
+    candidate_pool.json
+    quality_passed.json
+    promotion_seeds.json
+    rewrite_seeds.json
+    reject_summary.json
+```
+
+Additional `round-02/` and later directories use the same round artifact names when those rounds complete. The cycle manifest and logs are the local record of what happened; they do not publish the dataset to a remote registry.
+
+## Pull a local seed collection
+
+The current seed registry boundary is a local checkout or another explicitly supplied registry path. Pull a versioned collection into a working directory:
+
+```bash
+./bin/promptbeat seed pull agent-safety-baseline@0.1.0 \
+  --registry ./registry/seed-registry/v1 \
+  --output-dir ./.promptbeat/seeds/agent-safety-baseline/0.1.0
+```
+
+The pull writes `seeds.jsonl` in the output directory. Use that local file from a PromptBeat project or inspect it before evaluation. `--offline` can use a verified local cache; `--cache-dir` controls that cache location.
+
+<Info>
+  No confirmed public hosted Registry is provided. Document and reproduce the local or URL `--registry` source that you actually use.
+</Info>
+
+## Use the loop safely
+
+<Steps>
+  <Step title="Inspect inputs">
+    Validate the PromptBeat project and review the seed files before approving any command that may call a provider.
+  </Step>
+  <Step title="Choose the scope">
+    Use `build-version` for one captured version, or `build-cycle` when you need round-level allocation and transition records.
+  </Step>
+  <Step title="Review artifacts">
+    Inspect `evaluation_result.json`, promotion or rewrite seeds, and lineage files in the output directory.
+  </Step>
+  <Step title="Replay deliberately">
+    Feed a selected local dataset file into a later Model/Prompt evaluation and keep its version and build artifacts alongside the run.
+  </Step>
+</Steps>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Judgment" icon="scale-balanced" href="/promptbeat/judgment">
+    Read how backend assertions become PromptBeat statuses.
+  </Card>
+  <Card title="Reports" icon="file-lines" href="/promptbeat/reports">
+    Render the evaluation and dataset report artifacts.
+  </Card>
+</CardGroup>

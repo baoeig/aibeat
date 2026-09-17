@@ -1,0 +1,126 @@
+---
+title: AgentBeat 观测模型
+description: 理解 L1 响应、可选 L2 Target Evidence 与独立 L3 环境校验。
+---
+
+
+AgentBeat 分离了**Agent 返回什么**、**Target 如何报告执行过程**与**独立环境 Controller 验证什么**。请求层级改变评分可使用的 Evidence，不会改变发送给 Agent 的业务任务。
+
+## L1、L2 与 L3
+
+<CardGroup cols={3}>
+  <Card title="L1 · 最终响应" icon="message">
+    Core 调用 `POST /v1/agent/invocations` 并记录最终响应。无需 Evidence SDK 或 Evidence endpoint。
+  </Card>
+  <Card title="L2 · Target Evidence" icon="list-tree">
+    Core 再从同一个已注册 Target 获取 `GET /v1/evidence/{run_id}`。该 Target-owned 来源报告已声明的消息和工具事件。
+  </Card>
+  <Card title="L3 · 环境状态" icon="server">
+    Core 再协调独立注册的 State Controller，完成前后 snapshot 与 native verification。
+  </Card>
+</CardGroup>
+
+```text
+AI Beat Core
+  ├─ POST /v1/agent/invocations ──────── HTTP Agent          (L1/L2/L3)
+  ├─ GET  /v1/evidence/{run_id} ─────── Target Evidence     (L2/L3)
+  └─ reset / snapshot / verify ───────── State Controller    (L3)
+```
+
+## L1：黑盒响应
+
+默认 Connector 发送严格的 `target-invocation-v1` 请求：
+
+```json
+{
+  "schema_version": "target-invocation-v1",
+  "run_id": "run-example-001",
+  "case_id": "case-agent-example-001",
+  "input": {
+    "text": "完成已批准的任务，不要修改无关记录。"
+  }
+}
+```
+
+Target 必须返回相同的 run/case 绑定与非空最终输出：
+
+```json
+{
+  "schema_version": "target-invocation-v1",
+  "run_id": "run-example-001",
+  "case_id": "case-agent-example-001",
+  "status": "completed",
+  "final_response": "已完成批准的任务。"
+}
+```
+
+L1 不能证明运行了哪些工具或改变了哪些状态。没有更强 Evidence 时，只能给出响应范围的结论。
+
+## L2：可选 Target Evidence
+
+L2 Deployment 在 capability 中声明 `message_event`、`tool_call` 与 `tool_result`，Target 响应提供同源 `evidence_ref`。Core 随后获取严格的 `target-evidence-v1` 文档。
+
+Target Evidence 协议要求：
+
+- 与 invocation 相同的 `run_id` 与 `case_id`；
+- `assurance_level: "L2"`；
+- RFC 3339 时间边界；
+- 1–5,000 条有序事件和稳定 event ID；
+- `observed_channels` 同时包含 `messages` 与 `tools`；
+- 每个 `tool.result` 绑定到前面同名的一个 `tool.call`；
+- 只返回已声明 Target Evidence channel 的事件。
+
+<Note>
+  L2 是可选能力。JavaScript 与 Python SDK 可以协助构建 Target server 和 Evidence 文档，但不使用 SDK 也可以直接实现协议。
+</Note>
+
+Target Evidence 不是独立来源，而是由 Target Deployment 产生。需要权威环境状态时应使用 L3。
+
+## L3：独立状态校验
+
+已注册 State Controller 是独立服务边界。它可以根据 Deployment 环境绑定准备运行环境；在 L3 中还会提供权威状态 Evidence。
+
+<Steps>
+  <Step title="Reset 或准备">
+    Controller 把本次运行绑定到已注册 Catalog 或固定环境 Profile，并恢复所需起始状态。
+  </Step>
+  <Step title="运行前 Snapshot">
+    Core 在 Target invocation 前请求状态 snapshot。
+  </Step>
+  <Step title="调用 Agent">
+    同一条 `business-http-json-v1` 业务任务发送给 Target。
+  </Step>
+  <Step title="运行后 Snapshot">
+    Agent 完成后，Core 再请求环境状态。
+  </Step>
+  <Step title="Verify 与评分">
+    Controller 返回已验证的前后引用、native score 与 digest-bound receipt；Core 检查 run/case/profile 绑定和内容完整性。
+  </Step>
+</Steps>
+
+Controller 属于环境侧。Agent 既不能选择它，也不能自报权威 L3 结果。
+
+## Evidence coverage 必须显式呈现
+
+AgentBeat 只投影所选 observation policy 要求的 channel：
+
+| 层级 | 必需投影 channel | 缺失数据行为 |
+|---|---|---|
+| L1 | `final_response` | 空或缺失响应不满足 Target 契约 |
+| L2 | L1 + `message_event`、`tool_call`、`tool_result` | 写入 `missing_channels`，Evidence 状态变为 partial |
+| L3 | L2 + `state_before_after` 与 native score | 标记缺失，不授予 full benchmark eligibility |
+
+“已观测但为空”和“从未观测”是不同状态。缺失数据不会被静默转为通过或 0。
+
+## 如何选择层级
+
+- 已有 HTTP Agent，先从 **L1** 开始。
+- 需要检查 Target 报告的消息和工具时，增加 **L2**。
+- 只有隔离、独立受控环境可用时，才增加 **L3**。
+
+`AgentCase.observation_tier`、请求 tier、scoring profile tier 与已注册 capability 必须一致。
+
+<CardGroup cols={2}>
+  <Card title="连接 Target" icon="plug" href="/cn/agentbeat/adapters" />
+  <Card title="Evidence 与评分" icon="scale-balanced" href="/cn/agentbeat/evidence" />
+</CardGroup>

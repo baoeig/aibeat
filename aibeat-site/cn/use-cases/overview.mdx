@@ -1,0 +1,52 @@
+---
+title: 按使用场景选择
+description: 根据需要回答的评测问题选择 PromptBeat 或 AgentBeat。
+---
+
+
+同一个 AI 应用可能同时包含模型边界与 Agent 边界。应根据需要回答的问题和证据选择产品，而不是根据应用名称选择。
+
+## 模型与 Prompt 问题
+
+<CardGroup cols={2}>
+  <Card title="对模型响应做红队测试" icon="shield-halved" href="/cn/promptbeat/quickstart">
+    使用 PromptBeat 完整评测流水线测试 Prompt injection、越狱、有害内容、拒答与策略边界。
+  </Card>
+  <Card title="比较一次升级" icon="code-compare" href="/cn/promptbeat/execution">
+    在模型、Prompt 或策略变化后重新运行相同 Scenario 与 Dataset，并基于相同输入比较响应范围的结果。
+  </Card>
+</CardGroup>
+
+## Agent 行为问题
+
+<CardGroup cols={2}>
+  <Card title="检查 HTTP Agent 响应" icon="network-wired" href="/cn/agentbeat/quickstart">
+    当最终响应是可用的黑盒信号时，使用 AgentBeat L1；无需 Evidence SDK。
+  </Card>
+  <Card title="验证工具或状态" icon="microscope" href="/cn/agentbeat/observation-model">
+    只有 Target 声明并返回运行 Evidence 时才增加 L2；只有独立 Controller 能 reset、snapshot 并验证环境状态时才增加 L3。
+  </Card>
+</CardGroup>
+
+## 常见选择
+
+| 问题 | 产品 | 证据边界 |
+|---|---|---|
+| 模型是否遵循了 Prompt injection？ | PromptBeat | Provider 请求/响应与已配置 assertion |
+| Prompt 或策略更新是否导致拒答回归？ | PromptBeat | 重复 Case 与归一化评测结果 |
+| Agent 是否安全地完成了任务？ | AgentBeat | L1 响应，指标按可用 Evidence 限定范围 |
+| Agent 是否调用了未授权工具？ | AgentBeat | 已声明且实际观测到的 L2 tool Evidence |
+| Agent 是否修改了受保护状态？ | AgentBeat | L3 独立前后状态与 native verification |
+| 是否同时需要响应与动作覆盖？ | 分别使用两者 | 每项结果保留各自运行时和证据范围 |
+
+## 不应推断什么
+
+- 模型给出安全响应，并不能证明 Agent 没有执行不安全工具调用。
+- 缺少 L2 Evidence，不能证明工具被使用或未被使用。
+- Judge 分数不能覆盖权威的 L3 native security failure。
+- 运行 PromptBeat 不会替你准备或授权 AgentBeat 运行。
+
+<CardGroup cols={2}>
+  <Card title="PromptBeat Scenario" icon="list-check" href="/cn/promptbeat/scenarios" />
+  <Card title="AgentBeat AgentCase" icon="file-code" href="/cn/agentbeat/scenarios" />
+</CardGroup>

@@ -1,0 +1,55 @@
+---
+title: AI Beat 概览
+description: 两套分别面向模型/Prompt 与 HTTP Agent 边界的评测产品，并明确说明公开可用状态。
+---
+
+
+AI Beat 面向两类不同的系统边界开发评测工具。PromptBeat 评测模型与 Prompt 的响应；AgentBeat 评测 HTTP Agent 的最终响应，并在条件具备时评测其执行 Evidence 与环境影响。
+
+<CardGroup cols={2}>
+  <Card title="PromptBeat" icon="wand-magic-sparkles" href="/cn/promptbeat/overview">
+    **被测对象：**模型或 Prompt endpoint<br />
+    **运行时：**Go CLI + 当前 Promptfoo 评测后端
+    **主要用途：**红队测试、评测与回归数据集
+  </Card>
+  <Card title="AgentBeat" icon="robot" href="/cn/agentbeat/overview">
+    **被测对象：**黑盒 HTTP Agent<br />
+    **运行时：**Go `RunAgentEvaluation`（不使用 Promptfoo）
+    **主要用途：**基于分层 Evidence 的行为评测；源码与站点 Eval Preview 已可用，GitHub 评测器 Release 待发布
+  </Card>
+</CardGroup>
+
+## 设计上相互分离
+
+任何一款都不是另一款的模式或前置条件。PromptBeat 已可公开下载，当前完整评测流水线使用 Promptfoo。AgentBeat 在本开发仓库中有独立的 Go `RunAgentEvaluation` 实现与 Target SDK/Adapter Kit，而且该路径不使用 Promptfoo。站点构建的 Eval Preview 现已提供可运行的 `agentbeat eval-run` 和本地契约探针；匹配的 GitHub 正式评测器 Release 仍待发布。
+
+团队可以在完整应用中同时使用两者，但两次运行回答的是不同问题：
+
+- 模型或 Prompt 是否越过了响应边界？
+- Agent 是否在不越过行为或环境边界的前提下完成了任务？
+
+## 共同重视什么
+
+- **显式 Case：**输入和预期行为可审查，不被隐藏在 Dashboard 中。
+- **可检查结果：**命令和协议响应可以作为产物保留。
+- **证据范围：**结论必须说明实际观测到了什么。
+- **可重复运行：**稳定 Scenario 与 Dataset 支持模型、Prompt、策略或 Agent 变更后的回归。
+- **开放开发：**当前契约和开发仓库实现可审查；公开可执行包的可用性单独说明。
+
+这些是共同原则，并不表示两个产品当前已经共用同一份配置 schema、Registry、报告或完整 CLI surface。
+
+## 做评测，不做运行时拦截
+
+AI Beat 面向上线验收、红队测试与回归评测。它不会作为策略网关、防火墙或运行时拦截器常驻生产请求链路。
+
+<CardGroup cols={3}>
+  <Card title="选择产品" icon="scale-balanced" href="/cn/about/promptbeat-vs-agentbeat">
+    对比被测对象、运行时、Evidence 与当前命令。
+  </Card>
+  <Card title="PromptBeat 快速上手" icon="terminal" href="/cn/promptbeat/quickstart">
+    运行模型或 Prompt 评测。
+  </Card>
+  <Card title="AgentBeat 快速上手" icon="network-wired" href="/cn/agentbeat/quickstart">
+    接入一个 HTTP Agent Target。
+  </Card>
+</CardGroup>

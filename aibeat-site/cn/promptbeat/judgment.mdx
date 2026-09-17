@@ -1,0 +1,79 @@
+---
+title: 判定
+description: PromptBeat 如何把 Model/Prompt 响应和后端 assertion 转成评测状态。
+---
+
+
+PromptBeat 的判定只回答一个问题：配置的 Model/Prompt 响应是否满足配置的后端 assertions？
+
+判定输入是目标 Provider 生成的响应，以及 Scenario、case Prompt 和 assertion 配置。Assertion 可以是确定性规则；如果 rubric 需要理解，也可以调用配置好的模型 Judge。
+
+## 判定什么
+
+<CardGroup cols={2}>
+  <Card title="确定性 assertion" icon="ruler">
+    用固定规则检查响应。当预期信号可以被精确表达，并且不需要额外模型调用时，这种方式适合重复评测。
+  </Card>
+  <Card title="模型评分" icon="brain">
+    配置好的 Judge Provider 按 rubric 读取 case 和响应。这会增加一次模型调用，结果仍会作为 PromptBeat 评测 item 的一部分记录。
+  </Card>
+</CardGroup>
+
+当配置明确区分时，Judge Provider 与目标 Provider 是两个角色。PromptBeat 不把 Judge 分数当成目标响应的替代品：真正被评测的对象仍然是目标响应。
+
+## 决策路径
+
+<Steps>
+  <Step title="编译项目">
+    PromptBeat 把项目配置转换成评测使用的后端配置。
+  </Step>
+  <Step title="运行目标">
+    配置的目标 Provider 接收 case Prompt 并返回响应。
+  </Step>
+  <Step title="执行 assertions">
+    外部后端执行配置的 assertions。如果是模型评分 assertion，此处可能调用配置的 Judge Provider。
+  </Step>
+  <Step title="规范化结果">
+    PromptBeat 解析后端结果，把 item 状态、原因和可用的 Judge 证据写入规范化评测结果。
+  </Step>
+</Steps>
+
+## 状态
+
+| 状态 | 含义 |
+|---|---|
+| `PASS` | 该响应通过了配置的 assertions。 |
+| `FAIL` | 至少一个配置的 assertion 失败。规范化结果也可以包含对应的 Finding。 |
+| `REVIEW` | 现有判定信号无法明确归为通过或失败，例如模型判定无法解析。 |
+| `ERROR` | 评测或 Provider 操作失败。这是执行错误，不等于响应越过了被测边界。 |
+
+后端提供原因时，状态会带上 reason。模型评分也可能保留原始 Judge 输出或 Judge 证据；它们不能与确定性证明混为一谈。
+
+## 应查看的字段
+
+规范化评测 item 带有理解判定所需的标识和响应数据：
+
+| 字段 | 用途 |
+|---|---|
+| `ScenarioID`、`SeedID` | 在配置的 Scenario 和 Seed 集合中定位 case。 |
+| `ProviderID` | 确认生成响应的目标 Provider。 |
+| `CasePrompt`、`ActualOutput` | 对照被评测的输入和目标响应。 |
+| `Status`、`Passed`、`Reason` | 读取规范化决策及其解释。 |
+| `JudgeRawOutput`、`JudgeEvidence` | 存在模型评分时查看其输出。 |
+
+对比多次运行时，保持 Scenario、assertion 或 rubric、目标 Provider 和 Judge Provider 配置不变。Assertion 或 Judge 发生变化，状态的含义也会变化。
+
+<Info>
+  `promptbeat generate` 是本地确定性的 case artifact 命令，不调用目标或任何 Provider，也不产生判定。完整的 `promptbeat run` 链路不同：按项目和后端配置，它可能调用生成 Provider、目标 Provider 和 Judge Provider。
+</Info>
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="报告" icon="file-lines" href="/cn/promptbeat/reports">
+    把已有的评测结果渲染成 HTML 或 JSON。
+  </Card>
+  <Card title="数据闭环" icon="rotate" href="/cn/promptbeat/dataset-loop">
+    从评测候选构建本地数据集版本和自适应周期。
+  </Card>
+</CardGroup>

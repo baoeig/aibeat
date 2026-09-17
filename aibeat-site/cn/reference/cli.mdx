@@ -1,0 +1,80 @@
+---
+title: CLI 参考
+description: PromptBeat 命令、AgentBeat 命令契约与版本前提，以及模型调用边界。
+---
+
+
+PromptBeat 与 AgentBeat 有各自的产品命令入口。站点 Eval Preview 已实现当前 AgentBeat HTTP 评测器命令；GitHub 上的旧适配器 Release 不支持。
+
+## PromptBeat 命令
+
+| 命令 | 用途 | 远程调用边界 |
+|---|---|---|
+| `promptbeat validate --config <path>` | 验证 PromptBeat project | 不能证明远程连通性 |
+| `promptbeat generate --config <project> --output <cases.json>` | 生成确定性本地 Case 预览 | 不调用 Target 或外部后端红队生成 |
+| `promptbeat compile promptfoo …` | 把 project/input 编译为后端 YAML | 本地编译 |
+| `promptbeat run --config <project> --output-dir <dir>` | 运行完整外部后端流水线 | 可能调用 Generator、Target 与 Judge Provider |
+| `promptbeat run promptfoo …` | 执行已有后端 YAML | 调用已配置 Provider |
+| `promptbeat pipeline run …` | 显式完整流水线入口 | 调用已配置 Provider |
+| `promptbeat eval …` | 使用可选 Provider override 评测后端 YAML | 调用已配置 Provider |
+| `promptbeat report …` | 从结果渲染 JSON 或 HTML | 本地产物生成 |
+| `promptbeat dataset build-version …` | 构建版本化 Dataset 产物 | 可能生成、评测并调用 Provider |
+| `promptbeat dataset build-cycle …` | 执行有界多轮 Dataset 构建 | 可能生成、评测并调用 Provider |
+| `promptbeat seed pull …` | 从文件/URL Registry 获取 collection | 读取所选 Registry 来源 |
+| `promptbeat config inspect …` | 检查 effective project config | 本地读取配置 |
+| `promptbeat scenarios list …` | 列出可用 Scenario | 本地列出 |
+
+完整示例见 [PromptBeat 快速上手](/cn/promptbeat/quickstart)。
+
+## AgentBeat 命令
+
+<Info>
+  站点构建的 Eval Preview 支持 `agentbeat eval-run`。它不是旧的 [`v0.3-agentbeat-preview.1`](https://github.com/tophant-ai/aibeat/releases/tag/v0.3-agentbeat-preview.1) 适配器 Release，后者只支持 legacy 接口。请从 [AgentBeat 快速开始](/cn/agentbeat/quickstart)下载并校验当前预览包。
+</Info>
+
+```bash
+agentbeat eval-run < eval-run-request.json > eval-run-response.json
+```
+
+站点 Eval Preview 通过产品命令暴露这套 HTTP 评测契约，其行为为：
+
+- 从 stdin 读取一个严格 JSON value；
+- 要求 `AIBEAT_AGENT_TARGET_REGISTRY`；
+- 对照所选 Deployment 验证请求中的 Target Profile/Capability；
+- 通过 `business-http-json-v1` 调用已注册 HTTP Agent；
+- 要求 `AIBEAT_JUDGE_BASE_URL` 与 `AIBEAT_JUDGE_MODEL`；
+- 向 stdout 输出一个 `eval-run-response-v1` JSON value。
+
+它可能调用真实 Agent 与 LLM Judge，并产生 Target 副作用或模型费用。
+
+## 源码与 Release 调用
+
+如果你的开发副本确实包含 `core/go`，可以在该目录运行 PromptBeat 源码命令。当前已核验的公开 GitHub 快照不包含这个目录；新用户请使用 [PromptBeat 快速开始](/cn/promptbeat/quickstart)中的完整包。
+
+```bash
+go run ./cmd/promptbeat --version
+go run ./cmd/promptbeat --help
+```
+
+不要在 `--version` 前额外插入 `--`。对于已安装的 AgentBeat 发行包，先查看版本和顶层帮助；程序名叫 `agentbeat` 不代表它支持 `eval-run`：
+
+```bash
+agentbeat --version
+agentbeat --help
+```
+
+## 查看准确 Flag
+
+命令帮助由已安装 build 生成：
+
+```bash
+promptbeat --help
+promptbeat run --help
+promptbeat dataset build-version --help
+agentbeat --help
+```
+
+<CardGroup cols={2}>
+  <Card title="PromptBeat 快速上手" icon="wand-magic-sparkles" href="/cn/promptbeat/quickstart" />
+  <Card title="AgentBeat 快速上手" icon="robot" href="/cn/agentbeat/quickstart" />
+</CardGroup>

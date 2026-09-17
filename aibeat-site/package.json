@@ -1,0 +1,28 @@
+{
+  "name": "aibeat-site",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Beat product and documentation site built with Mintlify.",
+  "scripts": {
+    "predev": "npm run build:skills",
+    "dev": "mint dev",
+    "build:agentbeat-preview": "TMPDIR=${TMPDIR:-../.work} python3 ../scripts/build-agentbeat-eval-preview.py",
+    "check:agentbeat-preview": "TMPDIR=${TMPDIR:-../.work} python3 ../scripts/test-agentbeat-eval-preview.py && TMPDIR=${TMPDIR:-../.work} python3 ../scripts/build-agentbeat-eval-preview.py --check",
+    "build:skills": "node scripts/build-skills.mjs",
+    "check:skills": "node scripts/build-skills.mjs --check && node --test scripts/build-skills.test.mjs",
+    "check": "npm run check:skills && npm run check:agentbeat-preview && npm run check:bilingual && mint broken-links --check-anchors --check-redirects",
+    "check:bilingual": "node scripts/check-bilingual.mjs",
+    "check:export": "node scripts/check-export.mjs .build/aibeat-site.zip",
+    "qa:visual": "node scripts/run-visual-qa.mjs",
+    "qa:onboarding": "node scripts/run-onboarding-qa.mjs",
+    "build:community": "npm --prefix ../community-site run build && rm -rf public/community && mkdir -p public && cp -a ../community-site/dist public/community",
+    "build:site": "npm run build:skills && npm run build:agentbeat-preview && rm -rf .build && mkdir -p .build && mint export --disable-openapi --output .build/aibeat-site.zip && npm run check:export",
+    "build": "npm run build:community && npm run build:site"
+  },
+  "devDependencies": {
+    "mintlify": "4.2.587"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

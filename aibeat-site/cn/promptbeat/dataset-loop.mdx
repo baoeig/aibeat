@@ -1,0 +1,143 @@
+---
+title: 数据闭环
+description: 从 Model/Prompt 评测 artifact 构建本地 PromptBeat 数据集版本和自适应周期。
+---
+
+
+PromptBeat 的数据闭环是一个面向 Model/Prompt 评测的本地 artifact 流程。它把 Seed 和已评测候选变成可检查、可复用、可回放的版本化文件，不是 hosted 数据集服务。
+
+```text
+本地 Seed 和项目配置
+  -> dataset build-version 或 dataset build-cycle
+  -> 候选生成和外部后端评测
+  -> 质量、晋级、改写和血缘 artifact
+  -> 下一次运行使用的本地数据集文件
+```
+
+## 选择构建命令
+
+<CardGroup cols={2}>
+  <Card title="构建一个版本" icon="file-plus">
+    `dataset build-version` 从项目配置创建一个数据集版本 artifact 目录。适合把候选集合和评测结果作为一次构建保存。
+  </Card>
+  <Card title="构建自适应周期" icon="rotate">
+    `dataset build-cycle` 按候选预算和确定性的周期 Seed 运行多轮。适合让后续轮次使用前面轮次记录的结果。
+  </Card>
+</CardGroup>
+
+### 构建一个版本
+
+```bash
+./bin/promptbeat dataset build-version \
+  --config examples/bootstrap/promptbeat.yaml \
+  --dataset-id safety-seed-pool \
+  --version v1 \
+  --output artifacts/dataset-v1 \
+  --expansion-count 2
+```
+
+项目配置、数据集 id、版本和输出目录都是必填项。`--expansion-count` 可选；Provider、策略和模型发现还有其他 CLI 参数，详见命令用法。
+
+### 构建自适应周期
+
+```bash
+./bin/promptbeat dataset build-cycle \
+  --config examples/bootstrap/promptbeat.yaml \
+  --dataset-id safety-redteam-v1 \
+  --version v0.1 \
+  --output artifacts/datasets/safety-redteam-v1/v0.1 \
+  --rounds 2 \
+  --candidate-budget 10 \
+  --seed 42
+```
+
+两个构建命令都使用外部后端的生成和评测路径。根据项目与 Provider 配置，它们可能调用生成 Provider、目标 Provider 或 Judge Provider，并产生 Provider 费用。它们不同于本地确定性的 `promptbeat generate` 预览。
+
+## 版本构建产物
+
+`dataset build-version` 会在输出目录写入这些文件：
+
+```text
+artifacts/dataset-v1/
+  dataset_version.json
+  candidate_pool.json
+  evaluation_result.json
+  promotion_seeds.json
+  rewrite_seeds.json
+  lineage.json
+  report.json
+  model_discovery.json
+  report.html
+```
+
+即使未使用模型发现，`model_discovery.json` 也属于 artifact 契约。JSON 文件记录实现实际产生的构建输入、候选、评测、晋级、改写、血缘和报告数据。
+
+## 周期产物
+
+`dataset build-cycle` 会写入周期级文件，并为每个完成的轮次写入一个目录：
+
+```text
+artifacts/datasets/safety-redteam-v1/v0.1/
+  dataset_manifest.json
+  search_tree.json
+  candidate_ledger.jsonl
+  transition_log.jsonl
+  final_cases.jsonl
+  final_promoted_seeds.json
+  lineage.jsonl
+  metrics.json
+  round-01/
+    round_manifest.json
+    allocations.json
+    candidate_pool.json
+    quality_passed.json
+    promotion_seeds.json
+    rewrite_seeds.json
+    reject_summary.json
+```
+
+轮次完成后，额外的 `round-02/` 及后续目录使用相同的轮次 artifact 名称。周期 manifest 和日志是本地过程记录，不会把数据集发布到远程 Registry。
+
+## 拉取本地 Seed 集合
+
+当前 Seed Registry 的边界是本地 checkout 或明确传入的其他 Registry 路径。把一个有版本的集合拉到工作目录：
+
+```bash
+./bin/promptbeat seed pull agent-safety-baseline@0.1.0 \
+  --registry ./registry/seed-registry/v1 \
+  --output-dir ./.promptbeat/seeds/agent-safety-baseline/0.1.0
+```
+
+拉取会在输出目录写入 `seeds.jsonl`。在 PromptBeat 项目中使用这个本地文件前，先检查它。`--offline` 可以使用已验证的本地缓存，`--cache-dir` 控制缓存位置。
+
+<Info>
+  当前没有已确认的公共 hosted Registry。请记录并复现实际使用的本地或 URL `--registry` 来源。
+</Info>
+
+## 有边界地使用闭环
+
+<Steps>
+  <Step title="检查输入">
+    先验证 PromptBeat 项目并审阅 Seed 文件，再批准可能调用 Provider 的命令。
+  </Step>
+  <Step title="选择范围">
+    用 `build-version` 保存一次版本构建；需要轮次级分配和状态转移记录时，用 `build-cycle`。
+  </Step>
+  <Step title="检查产物">
+    检查输出目录中的 `evaluation_result.json`、晋级或改写 Seed，以及血缘文件。
+  </Step>
+  <Step title="有意回放">
+    把选定的本地数据集文件输入后续 Model/Prompt 评测，并把它的版本和构建 artifact 与运行结果放在一起。
+  </Step>
+</Steps>
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="判定" icon="scale-balanced" href="/cn/promptbeat/judgment">
+    了解后端 assertions 如何变成 PromptBeat 状态。
+  </Card>
+  <Card title="报告" icon="file-lines" href="/cn/promptbeat/reports">
+    渲染评测和数据集报告 artifact。
+  </Card>
+</CardGroup>

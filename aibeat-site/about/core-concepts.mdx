@@ -1,0 +1,49 @@
+---
+title: Core concepts
+description: The smallest useful vocabulary for PromptBeat and AgentBeat, without hiding their different contracts.
+---
+
+
+PromptBeat and AgentBeat share an emphasis on explicit evaluation inputs and inspectable results. Their current schemas and runtimes are different, so this page keeps the vocabulary separated.
+
+## PromptBeat vocabulary
+
+| Term | Meaning |
+|---|---|
+| **Target** | The model or Prompt-driven endpoint being evaluated. |
+| **Scenario** | A risk or behavior to test, with the expected response boundary. |
+| **Seed** | Source material used to create concrete test cases. |
+| **Project config** | The PromptBeat YAML that selects Target, Scenario, Seed, providers, and external evaluation-backend options. |
+| **Generated case** | A deterministic local case artifact produced by `promptbeat generate`. |
+| **Evaluation result** | The normalized result parsed from the external execution backend. |
+| **Dataset version** | A selected, versioned set of cases for repeatable regression. |
+
+The PromptBeat flow is documented in [PromptBeat overview](/promptbeat/overview).
+
+## AgentBeat vocabulary
+
+| Term | Meaning |
+|---|---|
+| **AgentCase** | A complete 21-field evaluation case describing the task, risk, expected behavior, and observation tier. It does not own endpoints or secrets. |
+| **Target Profile** | The evaluator-owned identity and connector plan for the HTTP Agent deployment. |
+| **Target Capability** | The input, environment, and Evidence channels a registered deployment declares. |
+| **Deployment Profile** | The Registry entry that binds profile, capability, endpoint, credentials, and optional State Controller. |
+| **Observation tier** | L1 final response, L2 Target Evidence, or L3 independent environment state verification. |
+| **Evidence** | Tier-qualified observations used by deterministic checks and the LLM Judge. Unobserved data remains unavailable. |
+| **Scoring profile** | Positive deterministic and Judge component weights that sum to 1. |
+| **Metrics** | Utility, Security, ASR, and Overall, each preserving applicability and coverage. |
+
+The AgentBeat protocol is documented in [Observation model](/agentbeat/observation-model) and [Evidence and scoring](/agentbeat/evidence).
+
+## Names that look similar but are not interchangeable
+
+| Do not collapse | Why |
+|---|---|
+| PromptBeat Scenario and AgentCase | They use separate schemas and are not interchangeable. |
+| PromptBeat provider and AgentBeat Target deployment | One configures the external-backend model flow; the other is an evaluator-owned HTTP Agent Registry entry. |
+| PromptBeat result and AgentBeat Evidence | A provider evaluation result is not proof of tool calls or state changes. |
+| LLM Judge and native L3 verification | A Judge interprets Evidence; native verification observes authoritative environment state and can act as a hard gate. |
+
+## A practical rule
+
+Ask what the evaluator can actually observe. If you only have a response, make a response-scoped claim. If a registered Target also returns declared Evidence, qualify the claim as L2. If an independent controller verifies state, qualify it as L3.

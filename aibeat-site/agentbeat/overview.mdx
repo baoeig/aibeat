@@ -1,0 +1,88 @@
+---
+title: AgentBeat overview
+description: Repository-implemented black-box HTTP Agent evaluation with tier-qualified Evidence and native Go orchestration.
+---
+
+
+AgentBeat is a separate product design and **repository-implemented Go evaluation path** for black-box HTTP Agents. `RunAgentEvaluation` invokes a registered Agent, collects only the Evidence available at the requested observation tier, and derives Utility, Security, ASR, and Overall metrics. This runtime does **not** call Promptfoo and is not a PromptBeat mode.
+
+<Note>
+  The source implementation, Target SDK/Adapter Kits, and a website-built Eval Preview are available. The preview supplies `agentbeat eval-run` and a local no-key contract probe; it is not an official GitHub Release. The published `v0.3-agentbeat-preview.1` remains the older adapter product and has no `eval-run`.
+</Note>
+
+## Use AgentBeat when
+
+- an HTTP Agent can take actions or change state beyond producing text;
+- you need to evaluate task completion and security as separate dimensions;
+- a Target can optionally provide message or tool Evidence;
+- an independent environment Controller can verify state changes;
+- missing Evidence must remain visible instead of being treated as a pass.
+
+Use [PromptBeat](/promptbeat/overview) for model and Prompt red-team evaluation. PromptBeat's current full pipeline uses Promptfoo; AgentBeat's `RunAgentEvaluation` path does not use Promptfoo and does not generate Prompt attacks.
+
+## How one run works
+
+```text
+complete AgentCase + registered Deployment + scoring profile
+  → negotiate Target capability and observation tier
+  → invoke POST /v1/agent/invocations
+  → collect L1 / L2 / L3 Evidence
+  → deterministic component + LLM Judge component
+  → Utility · Security · ASR · Overall
+```
+
+<Steps>
+  <Step title="Validate the Case and Deployment">
+    The evaluator checks the complete 21-field `AgentCase`, Target Profile, Target Capability, Registry entry, requested tier, and scoring profile before invoking the Agent.
+  </Step>
+  <Step title="Invoke the HTTP Agent">
+    The `business-http-json-v1` Connector sends the trusted task to `POST /v1/agent/invocations`. Endpoint and credential resolution stay in the server-owned Registry, not in the Case.
+  </Step>
+  <Step title="Collect tier-qualified Evidence">
+    L1 uses the final response. L2 additionally fetches declared Target Evidence. L3 additionally asks an independent State Controller to reset, snapshot, and verify the environment.
+  </Step>
+  <Step title="Score without hiding gaps">
+    Deterministic and LLM Judge components are combined only when available. Missing components remain unavailable, and coverage stays visible.
+  </Step>
+  <Step title="Derive explicit metrics">
+    Utility, Security, ASR, and Overall preserve their own applicability, direction, verdict, score, and Evidence coverage.
+  </Step>
+</Steps>
+
+## Progressive observation
+
+<CardGroup cols={3}>
+  <Card title="L1 · Final response" icon="message">
+    Standard HTTP invocation. No AgentBeat SDK is required. Conclusions are limited to the returned response and available scoring components.
+  </Card>
+  <Card title="L2 · Target Evidence" icon="list-tree">
+    Optional `GET /v1/evidence/{run_id}` supplies declared message and tool observations. The Target owns this Evidence source.
+  </Card>
+  <Card title="L3 · Environment state" icon="server">
+    An independent State Controller supplies before/after state and native verification. The Agent does not self-report the authoritative state.
+  </Card>
+</CardGroup>
+
+[Understand the observation model →](/agentbeat/observation-model)
+
+## Repository capability and public availability
+
+| Area | Evaluation capability | Boundary |
+|---|---|---|
+| Target invocation | `business-http-json-v1` over HTTP | The registered endpoint must satisfy the strict request/response contract |
+| Case contract | Complete environment-independent 21-field `AgentCase` | No endpoint, credential, tool, fixture, or scorer implementation in the Case |
+| L2 collection | Strict `target-evidence-v1` endpoint | Optional; undeclared or missing channels cannot be inferred |
+| L3 control | Registered independent State Controller | Required only for L3 and compatible environment bindings |
+| Cascade score | Positive deterministic + Judge weights summing to 1 | `0.7 / 0.3` is a profile example, not a hardcoded default |
+| Hard gates | Native Security/ASR gate behavior | Applies only when authoritative L3 native Evidence establishes the condition |
+| Distribution | Development source, Target SDK/Adapter Kits, and website Eval Preview | Preview is runnable but is not an official GitHub Release |
+
+## Prepare an L1 integration
+
+Begin at L1 if the Agent already exposes HTTP. Add L2 only when runtime observations are useful and the Target can return them safely. Add L3 only when an independent test environment can provide authoritative state.
+
+<CardGroup cols={3}>
+  <Card title="Download and run" icon="rocket" href="/agentbeat/quickstart" />
+  <Card title="Adapters and SDKs" icon="plug" href="/agentbeat/sdk-integration" />
+  <Card title="Evidence and scoring" icon="scale-balanced" href="/agentbeat/evidence" />
+</CardGroup>

@@ -14,7 +14,8 @@
     <a href="#promptbeat"><b>PromptBeat</b></a> ·
     <a href="#agentbeat"><b>AgentBeat</b></a> ·
     <a href="https://github.com/tophant-ai/aibeat/releases/latest"><b>下载</b></a> ·
-    <a href="website/zh/index.mdx"><b>文档</b></a> ·
+    <a href="aibeat-site/cn/index.mdx"><b>站点文档</b></a> ·
+    <a href="docs/README.md"><b>文档索引</b></a> ·
     <a href="README.md"><b>English</b></a>
   </p>
 
@@ -185,19 +186,25 @@ agentbeat run \
 
 PromptBeat Skills 帮助兼容的 Coding Agent 完成环境准备、目标接入、风险选择、评测执行与故障排查。Skills 使用现有产品命令，不引入另一套操作接口。
 
-安装方法见 [PromptBeat Skills](website/zh/getting-started/skills.mdx)。
+安装方法见 [PromptBeat Skills](aibeat-site/cn/promptbeat/skills.mdx)。
 
 ## 仓库范围
 
-这个公开仓库用于分发文档、可运行示例、Skills 与发布物。产品实现源码和完整构建链路在独立研发仓库维护；使用公开发布物无需检出源码。
+这个公开仓库用于分发产品文档、可运行示例、Skills、AgentBeat JS SDK，以及
+[`aibeat-site/`](aibeat-site/) 下的 Mintlify 站点源码。完整产品实现（`core/`、
+`api/`）、内部评测数据集与部署流水线保留在私有维护仓。公开
+[Releases](https://github.com/tophant-ai/aibeat/releases) 提供带校验的安装包，
+使用发布物无需检出源码。
 
 请使用环境变量管理凭证，在执行高成本评测前检查生成用例，并为 Agent 目标配置受限工作目录。
 
 ## 文档
 
-[产品概览](website/zh/index.mdx) ·
-[配置模型](website/zh/concepts/configuration-model.mdx) ·
-[数据集](website/zh/datasets/catalog.mdx) ·
-[报告](website/zh/reports/comprehensive-reports.mdx) ·
+长说明放在文档树，而不是堆进本 README：
+
+[文档索引](docs/README.md) ·
+[AgentBeat 概览](docs/agentbeat/overview.md) ·
+[PromptBeat 概览](docs/promptbeat/overview.md) ·
+[站点首页](aibeat-site/cn/index.mdx) ·
 [Releases](https://github.com/tophant-ai/aibeat/releases) ·
 [Discord](https://discord.gg/8A6mFckxZ)

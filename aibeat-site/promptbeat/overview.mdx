@@ -1,0 +1,83 @@
+---
+title: PromptBeat overview
+description: Open-source model and Prompt red-team evaluation with a Go CLI and Promptfoo backend.
+---
+
+
+PromptBeat is an independent open-source product for **model and prompt red-team evaluation**. It turns scenarios, seeds, and provider configuration into repeatable evaluations and inspectable artifacts. Its current full pipeline uses **Promptfoo** for red-team generation and execution; PromptBeat owns the project workflow, Go CLI, validation, normalization, datasets, and packaged results around that backend.
+
+<span className="aibeat-status-badge aibeat-status-badge--available">AVAILABLE NOW</span>
+
+## Use PromptBeat when
+
+- you need to test prompt injection, jailbreak, refusal, harmful-content, or policy behavior;
+- you want to compare a model, Prompt, or provider change on the same cases;
+- you need a versioned dataset and repeatable regression workflow;
+- the claim you need to make is scoped to model/provider requests and responses.
+
+For HTTP Agent actions, tool Evidence, or environment state, use [AgentBeat](/agentbeat/overview) instead.
+
+## One product loop
+
+<Steps>
+  <Step title="Describe the evaluation">
+    A PromptBeat project defines the model Target, Scenarios, Seeds, Provider roles, and Promptfoo backend configuration.
+  </Step>
+  <Step title="Validate before calling a model">
+    `promptbeat validate` checks the project structure and referenced files. Validation does not prove that a remote model is reachable.
+  </Step>
+  <Step title="Preview deterministic cases">
+    `promptbeat generate` deterministically produces local JSON cases without running Promptfoo red-team generation or calling the Target.
+  </Step>
+  <Step title="Run the full pipeline">
+    `promptbeat run` compiles Promptfoo configuration, runs Promptfoo red-team generation, validates generated cases, evaluates configured targets, and parses the result.
+  </Step>
+  <Step title="Inspect and retain artifacts">
+    The output directory contains the generated backend artifacts, raw result, normalized `evaluation_result.json`, and `report.html`.
+  </Step>
+  <Step title="Build regression datasets">
+    Dataset commands can select, version, and carry cases into future runs.
+  </Step>
+</Steps>
+
+## Current capabilities
+
+<CardGroup cols={2}>
+  <Card title="Scenario-driven projects" icon="list-check">
+    Keep target definition, risks, expected behavior, and seeds reviewable in source-controlled files.
+  </Card>
+  <Card title="Promptfoo execution" icon="gears">
+    Compile and execute the current red-team pipeline through the pinned Promptfoo backend.
+  </Card>
+  <Card title="Provider roles" icon="diagram-project">
+    Configure generator, Judge, and target providers independently through environment-backed values.
+  </Card>
+  <Card title="Inspectable artifacts" icon="file-code">
+    Retain raw backend output, normalized results, and an HTML report under the run directory.
+  </Card>
+  <Card title="Dataset versioning" icon="database">
+    Build versioned candidate, evaluation, promotion, lineage, and report artifacts.
+  </Card>
+  <Card title="Source or release use" icon="box-open">
+    Run from a complete release bundle or build the Go CLI from source and supply the required evaluation backend separately.
+  </Card>
+</CardGroup>
+
+## Runtime boundary
+
+```text
+PromptBeat project
+  → compile Promptfoo configuration
+  → Promptfoo red-team generation
+  → provider evaluation
+  → parse EvaluationResult
+  → JSON / HTML artifacts
+```
+
+PromptBeat does not execute the AgentBeat `RunAgentEvaluation` path and does not evaluate HTTP Agent tool use or environment state.
+
+<CardGroup cols={3}>
+  <Card title="Quickstart" icon="rocket" href="/promptbeat/quickstart" />
+  <Card title="Design scenarios" icon="list-check" href="/promptbeat/scenarios" />
+  <Card title="Understand artifacts" icon="file-lines" href="/promptbeat/reports" />
+</CardGroup>

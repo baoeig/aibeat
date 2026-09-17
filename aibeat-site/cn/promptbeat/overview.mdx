@@ -1,0 +1,83 @@
+---
+title: PromptBeat 概览
+description: 使用 Go CLI 与 Promptfoo 后端进行开源模型与 Prompt 红队评测。
+---
+
+
+PromptBeat 是一款面向**模型与 Prompt 红队评测**的独立开源产品。它把 Scenario、Seed 与 Provider 配置转换为可重复运行的评测和可检查产物。当前完整流水线使用 **Promptfoo** 完成红队生成与执行；PromptBeat 负责围绕该后端的 Project 流程、Go CLI、校验、结果归一化、Dataset 与产品打包。
+
+<span className="aibeat-status-badge aibeat-status-badge--available">现已支持</span>
+
+## 适合使用 PromptBeat 的情况
+
+- 测试 Prompt injection、越狱、拒答、有害内容或策略行为；
+- 在相同 Case 上比较模型、Prompt 或 Provider 变更；
+- 建立版本化 Dataset 与可重复的回归流程；
+- 所需结论限定在模型/Provider 的请求与响应范围内。
+
+如需评测 HTTP Agent 动作、工具 Evidence 或环境状态，请使用 [AgentBeat](/cn/agentbeat/overview)。
+
+## 一条完整产品流程
+
+<Steps>
+  <Step title="描述评测">
+    PromptBeat 项目定义模型 Target、Scenario、Seed、Provider 角色与 Promptfoo 后端配置。
+  </Step>
+  <Step title="调用模型前先验证">
+    `promptbeat validate` 检查 project 结构和引用文件。通过验证不代表远程模型已经连通。
+  </Step>
+  <Step title="预览确定性 Case">
+    `promptbeat generate` 仅根据项目配置确定性生成本地 JSON Case，不会触发 Promptfoo 红队生成或调用 Target。
+  </Step>
+  <Step title="运行完整流水线">
+    `promptbeat run` 编译 Promptfoo 配置、运行 Promptfoo 红队生成、验证生成 Case、评测已配置 Target，并解析结果。
+  </Step>
+  <Step title="检查并保留产物">
+    输出目录包含后端生成产物、原始结果、归一化 `evaluation_result.json` 与 `report.html`。
+  </Step>
+  <Step title="构建回归 Dataset">
+    Dataset 命令可以选择并版本化 Case，供后续回归使用。
+  </Step>
+</Steps>
+
+## 当前能力
+
+<CardGroup cols={2}>
+  <Card title="场景驱动的 Project" icon="list-check">
+    把 Target 定义、风险、预期行为与 Seed 保存在可审查、可版本控制的文件中。
+  </Card>
+  <Card title="Promptfoo 执行" icon="gears">
+    通过固定版本的 Promptfoo 后端编译并执行当前红队流水线。
+  </Card>
+  <Card title="Provider 角色" icon="diagram-project">
+    通过环境变量分别配置 Generator、Judge 与 Target Provider。
+  </Card>
+  <Card title="可检查产物" icon="file-code">
+    在运行目录中保留后端原始输出、归一化结果与 HTML 报告。
+  </Card>
+  <Card title="Dataset 版本化" icon="database">
+    构建带版本的 candidate、evaluation、promotion、lineage 与 report 产物。
+  </Card>
+  <Card title="源码或 Release 使用" icon="box-open">
+    使用完整 Release 包，或从源码构建 Go CLI 并单独提供所需评测后端。
+  </Card>
+</CardGroup>
+
+## 运行时边界
+
+```text
+PromptBeat project
+  → 编译 Promptfoo 配置
+  → Promptfoo 红队生成
+  → Provider 评测
+  → 解析 EvaluationResult
+  → JSON / HTML 产物
+```
+
+PromptBeat 不执行 AgentBeat 的 `RunAgentEvaluation` 路径，也不评测 HTTP Agent 的工具使用或环境状态。
+
+<CardGroup cols={3}>
+  <Card title="快速上手" icon="rocket" href="/cn/promptbeat/quickstart" />
+  <Card title="设计 Scenario" icon="list-check" href="/cn/promptbeat/scenarios" />
+  <Card title="理解产物" icon="file-lines" href="/cn/promptbeat/reports" />
+</CardGroup>
