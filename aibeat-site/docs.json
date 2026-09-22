@@ -32,7 +32,7 @@
       { "label": "PromptBeat", "href": "/promptbeat/overview" },
       { "label": "AgentBeat", "href": "/agentbeat/overview" },
       { "label": "Use cases", "href": "/use-cases/overview" },
-      { "label": "Seeds Community", "href": "https://seeds-aibeat.vercel.app" },
+      { "label": "Seeds Community", "href": "https://seeds.aibeat.ai" },
       { "label": "中文", "href": "/cn" }
     ],
     "primary": {
@@ -97,7 +97,7 @@
             { "label": "PromptBeat", "href": "/promptbeat/overview" },
             { "label": "AgentBeat", "href": "/agentbeat/overview" },
             { "label": "Use cases", "href": "/use-cases/overview" },
-            { "label": "Seeds Community", "href": "https://seeds-aibeat.vercel.app" },
+            { "label": "Seeds Community", "href": "https://seeds.aibeat.ai" },
             { "label": "中文", "href": "/cn" }
           ],
           "primary": {
@@ -160,7 +160,7 @@
             { "label": "PromptBeat", "href": "/cn/promptbeat/overview" },
             { "label": "AgentBeat", "href": "/cn/agentbeat/overview" },
             { "label": "使用场景", "href": "/cn/use-cases/overview" },
-            { "label": "种子社区", "href": "https://seeds-aibeat.vercel.app" },
+            { "label": "种子社区", "href": "https://seeds.aibeat.ai" },
             { "label": "English", "href": "/" }
           ],
           "primary": {
@@ -337,5 +337,10 @@
   },
   "interaction": {
     "drilldown": false
+  },
+  "integrations": {
+    "ga4": {
+      "measurementId": "G-XMYMXS8PJ4"
+    }
   }
 }

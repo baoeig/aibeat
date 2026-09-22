@@ -205,7 +205,7 @@ for (const route of enRoutes) {
     fail(`${route}: internal links differ between EN and CN`);
   }
   // Community pages have their own zh locale, unlike the docs site's cn.
-  const normalizeCommunityLink = (link) => link.replace(/^https:\/\/seeds-aibeat\.vercel\.app\/zh\/submit\/$/, 'https://seeds-aibeat.vercel.app/submit/');
+  const normalizeCommunityLink = (link) => link.replace(/^https:\/\/seeds\.aibeat\.ai\/zh\/submit\/$/, 'https://seeds.aibeat.ai/submit/');
   if (JSON.stringify(externalLinks(en)) !== JSON.stringify(externalLinks(cn).map(normalizeCommunityLink).sort())) {
     fail(`${route}: external links (including release downloads) differ between EN and CN`);
   }
