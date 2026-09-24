@@ -7,16 +7,16 @@ description: 下载完整包，无需 API Key 预览本地用例，再接入模�
 
 ## 1. 下载完整包
 
-按操作系统选择。以下 **v0.2 完整包**包含 CLI、示例、Skills、Node.js 和评测运行时，完成本文步骤不需要另装运行时。
+按操作系统选择。以下 **v0.4.1 完整包**包含 CLI、示例、Skills、Node.js 和评测运行时，完成本文步骤不需要另装运行时。
 
 <CardGroup cols={2}>
-  <Card title="macOS · Apple Silicon" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-darwin-arm64.tar.gz">下载 .tar.gz</Card>
-  <Card title="macOS · Intel" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-darwin-x64.tar.gz">下载 .tar.gz</Card>
-  <Card title="Linux · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-linux-x64.tar.gz">下载 .tar.gz</Card>
-  <Card title="Windows · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.2/promptbeat-0.2-windows-x64.zip">下载 .zip</Card>
+  <Card title="macOS · Apple Silicon" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.4.1/promptbeat-0.4.1-darwin-arm64.tar.gz">下载 .tar.gz</Card>
+  <Card title="macOS · Intel" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.4.1/promptbeat-0.4.1-darwin-x64.tar.gz">下载 .tar.gz</Card>
+  <Card title="Linux · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.4.1/promptbeat-0.4.1-linux-x64.tar.gz">下载 .tar.gz</Card>
+  <Card title="Windows · x64" icon="download" href="https://github.com/tophant-ai/aibeat/releases/download/v0.4.1/promptbeat-0.4.1-windows-x64.zip">下载 .zip</Card>
 </CardGroup>
 
-[版本说明与文件校验值](https://github.com/tophant-ai/aibeat/releases/tag/v0.2) · [GitHub 仓库](https://github.com/tophant-ai/aibeat)
+[版本说明与文件校验值](https://github.com/tophant-ai/aibeat/releases/tag/v0.4.1) · [GitHub 仓库](https://github.com/tophant-ai/aibeat)
 
 <Note>
   较新的 `v0.3-agentbeat-preview.1` 提供单独的可执行文件，并非这些完整包。按本文使用内置示例时，请下载上面链接的版本。
@@ -29,29 +29,29 @@ description: 下载完整包，无需 API Key 预览本地用例，再接入模�
 <Tabs>
   <Tab title="macOS · Apple Silicon">
     ```bash
-    tar -xzf promptbeat-0.2-darwin-arm64.tar.gz
-    cd promptbeat-0.2-darwin-arm64
+    tar -xzf promptbeat-0.4.1-darwin-arm64.tar.gz
+    cd promptbeat-0.4.1-darwin-arm64
     ./bin/promptbeat --version
     ```
   </Tab>
   <Tab title="macOS · Intel">
     ```bash
-    tar -xzf promptbeat-0.2-darwin-x64.tar.gz
-    cd promptbeat-0.2-darwin-x64
+    tar -xzf promptbeat-0.4.1-darwin-x64.tar.gz
+    cd promptbeat-0.4.1-darwin-x64
     ./bin/promptbeat --version
     ```
   </Tab>
   <Tab title="Linux">
     ```bash
-    tar -xzf promptbeat-0.2-linux-x64.tar.gz
-    cd promptbeat-0.2-linux-x64
+    tar -xzf promptbeat-0.4.1-linux-x64.tar.gz
+    cd promptbeat-0.4.1-linux-x64
     ./bin/promptbeat --version
     ```
   </Tab>
   <Tab title="Windows PowerShell">
     ```powershell
-    Expand-Archive .\promptbeat-0.2-windows-x64.zip -DestinationPath .\promptbeat-unpacked
-    cd .\promptbeat-unpacked\promptbeat-0.2-windows-x64
+    Expand-Archive .\promptbeat-0.4.1-windows-x64.zip -DestinationPath .\promptbeat-unpacked
+    cd .\promptbeat-unpacked\promptbeat-0.4.1-windows-x64
     .\bin\promptbeat.cmd --version
     ```
   </Tab>
