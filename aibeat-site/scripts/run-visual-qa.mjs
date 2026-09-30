@@ -10,6 +10,8 @@ fs.mkdirSync(outDir, { recursive: true });
 const routes = [
   ["home-en", "/"],
   ["home-cn", "/cn"],
+  ["try-en", "/try"],
+  ["try-cn", "/cn/try"],
   ["compare-en", "/about/promptbeat-vs-agentbeat"],
   ["compare-cn", "/cn/about/promptbeat-vs-agentbeat"],
   ["promptbeat-overview-en", "/promptbeat/overview"],

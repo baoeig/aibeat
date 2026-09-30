@@ -3520,6 +3520,314 @@ html.dark .aibeat-home a.aibeat-home-button--router:hover {
   text-decoration: underline !important;
 }
 
+/* SECTION: TRY / SAMPLE REPORTS */
+.aibeat-home-try {
+  padding: 4.5rem 0;
+  border-bottom: 1px solid var(--aibeat-border-subtle);
+  background: var(--aibeat-surface);
+}
+
+.aibeat-home-try-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .aibeat-home-try-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aibeat-home-try-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+  padding: 1.4rem 1.45rem 1.5rem;
+  background: var(--aibeat-canvas);
+  border: 1px solid var(--aibeat-border);
+  border-top: 3px solid var(--aibeat-border-strong);
+  border-radius: 0.85rem;
+  box-shadow: var(--home-card-shadow);
+}
+
+html.dark .aibeat-home-try-card {
+  background: #0E1524;
+  border-color: #1E293B;
+}
+
+.aibeat-home-try-card--prompt {
+  border-top-color: var(--home-prompt);
+}
+
+.aibeat-home-try-card--agent {
+  border-top-color: var(--home-agent);
+}
+
+.aibeat-home-try-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.aibeat-home-try-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: var(--aibeat-surface-raised);
+  border: 1px solid var(--aibeat-border);
+  color: var(--aibeat-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.aibeat-home-try-card--prompt .aibeat-home-try-badge {
+  color: var(--home-prompt);
+  border-color: color-mix(in srgb, var(--home-prompt) 28%, var(--aibeat-border));
+  background: color-mix(in srgb, var(--home-prompt) 10%, transparent);
+}
+
+.aibeat-home-try-card--agent .aibeat-home-try-badge {
+  color: var(--home-agent);
+  border-color: color-mix(in srgb, var(--home-agent) 28%, var(--aibeat-border));
+  background: color-mix(in srgb, var(--home-agent) 10%, transparent);
+}
+
+.aibeat-home-try-summary {
+  margin: 0;
+  color: var(--aibeat-muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.aibeat-home-try-lesson {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--aibeat-border-subtle);
+}
+
+.aibeat-home-try-lesson-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  color: var(--aibeat-text);
+  font-size: 0.95rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.aibeat-home-try-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--aibeat-surface-raised);
+  border: 1px solid var(--aibeat-border);
+  color: var(--aibeat-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.aibeat-home-try-card--prompt .aibeat-home-try-step-num {
+  color: var(--home-prompt);
+  border-color: color-mix(in srgb, var(--home-prompt) 30%, var(--aibeat-border));
+  background: color-mix(in srgb, var(--home-prompt) 10%, transparent);
+}
+
+.aibeat-home-try-card--agent .aibeat-home-try-step-num {
+  color: var(--home-agent);
+  border-color: color-mix(in srgb, var(--home-agent) 30%, var(--aibeat-border));
+  background: color-mix(in srgb, var(--home-agent) 10%, transparent);
+}
+
+.aibeat-home-try-lesson-desc {
+  margin: 0;
+  color: var(--aibeat-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.aibeat-home-try-note {
+  margin: 0;
+  color: var(--aibeat-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.aibeat-home-try-note code {
+  font-size: 0.75rem;
+  padding: 0.08rem 0.3rem;
+  border-radius: 0.25rem;
+  background: var(--aibeat-surface-subtle);
+  border: 1px solid var(--aibeat-border);
+  color: var(--aibeat-text);
+}
+
+.aibeat-home-try-code {
+  margin-bottom: 0;
+}
+
+.aibeat-home-try-code pre {
+  padding: 0.85rem 0.95rem 0.95rem;
+}
+
+.aibeat-home-try-code code {
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.aibeat-home-try-preview {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 0.65rem;
+  border: 1px solid var(--aibeat-border);
+  background: #0B1220;
+  text-decoration: none !important;
+}
+
+.aibeat-home-try-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top left;
+}
+
+.aibeat-home-try-preview-label {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #F8FAFC;
+  font-size: 0.75rem;
+  font-weight: 700;
+  backdrop-filter: blur(6px);
+}
+
+.aibeat-home-try-preview:hover .aibeat-home-try-preview-label,
+.aibeat-home-try-preview:focus-visible .aibeat-home-try-preview-label {
+  background: rgba(15, 23, 42, 0.92);
+}
+
+.aibeat-home-try-actions {
+  margin-top: auto;
+  padding-top: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1.1rem;
+}
+
+.aibeat-try-report-preview {
+  display: block;
+  margin: 0.85rem 0 1.5rem;
+  overflow: hidden;
+  border: 1px solid var(--aibeat-border);
+  border-radius: 0.75rem;
+  background: var(--aibeat-surface);
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.aibeat-try-report-preview-shot {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.aibeat-try-report-preview--promptbeat .aibeat-try-report-preview-shot {
+  background-image: url("/images/try-promptbeat-report.png");
+}
+
+.aibeat-try-report-preview--agentbeat .aibeat-try-report-preview-shot {
+  background-image: url("/images/try-agentbeat-report.png");
+}
+
+.aibeat-try-report-preview > span:last-child {
+  display: block;
+  padding: 0.7rem 1rem 0.85rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--agentbeat-text);
+}
+
+.aibeat-try-report-preview:hover {
+  border-color: var(--aibeat-border-strong);
+}
+
+.aibeat-try-story {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0.85rem 0 1.1rem;
+}
+
+.aibeat-try-story-item {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--aibeat-border);
+  background: var(--aibeat-surface);
+}
+
+.aibeat-try-story-item--ok {
+  border-color: var(--status-pass-border);
+  background: var(--status-pass-soft);
+}
+
+.aibeat-try-story-item--attack {
+  border-color: var(--status-review-border);
+  background: var(--status-review-soft);
+}
+
+.aibeat-try-story-item--fail {
+  border-color: #FECACA;
+  background: #FEF2F2;
+}
+
+html.dark .aibeat-try-story-item--fail {
+  border-color: #7F1D1D;
+  background: #1F1212;
+}
+
+.aibeat-try-story-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--aibeat-muted);
+}
+
+.aibeat-try-story-item p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--aibeat-text);
+}
+
 /* SECTION 2: SKILLS ONBOARDING / AIBEAT SKILL */
 .aibeat-home-skills {
   padding: 4.5rem 0;

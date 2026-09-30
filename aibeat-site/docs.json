@@ -51,6 +51,7 @@
             "group": "Start here",
             "pages": [
               "index",
+              "try",
               "about/overview",
               "about/promptbeat-vs-agentbeat",
               "about/core-concepts"
@@ -114,6 +115,7 @@
             "group": "从这里开始",
             "pages": [
               "cn/index",
+              "cn/try",
               "cn/about/overview",
               "cn/about/promptbeat-vs-agentbeat",
               "cn/about/core-concepts"

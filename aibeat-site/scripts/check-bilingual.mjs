@@ -12,8 +12,8 @@ const enRoutes = routes(language("en"));
 const cnRoutes = routes(language("cn"));
 const canonicalCnRoutes = cnRoutes.map((route) => route.replace(/^cn\//, ""));
 
-if (enRoutes.length !== 22 || cnRoutes.length !== 22) {
-  fail(`expected 22 EN and 22 CN routes, got ${enRoutes.length} and ${cnRoutes.length}`);
+if (enRoutes.length !== 23 || cnRoutes.length !== 23) {
+  fail(`expected 23 EN and 23 CN routes, got ${enRoutes.length} and ${cnRoutes.length}`);
 }
 if (new Set(enRoutes).size !== enRoutes.length || new Set(cnRoutes).size !== cnRoutes.length) {
   fail("navigation contains duplicate routes");

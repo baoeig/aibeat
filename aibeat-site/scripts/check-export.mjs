@@ -26,7 +26,7 @@ const routes = config.navigation.languages.flatMap((language) =>
 const entries = new Set(unzip("-Z1", zipPath).split("\n").filter(Boolean));
 const readEntry = (entry) => unzip("-p", zipPath, entry);
 
-if (routes.length !== 44) failures.push(`expected 44 published routes, got ${routes.length}`);
+if (routes.length !== 46) failures.push(`expected 46 published routes, got ${routes.length}`);
 if (!entries.has("localization.js")) failures.push("export is missing auto-discovered localization.js");
 
 const downloadableAssets = [
