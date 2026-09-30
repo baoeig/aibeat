@@ -44,7 +44,9 @@ Opens as a full page, not a box inside the docs. In Case Explorer, search `seed-
 
 ### Try it locally
 
-You will not reproduce the banking suite on your laptop (those model keys are not in the box). The package ships a much smaller customer-support example: do not look up someone else's order, do not skip verification to issue a refund. Files live under `examples/bootstrap/`. Start from `promptbeat.yaml`.
+The six models in the report can be scored on your machine once they are in `providers.yaml`. How to wire keys and run scoring: [PromptBeat Quickstart](/promptbeat/quickstart).
+
+If you have not connected a model yet, use the bundled customer-support example first: do not look up someone else's order, do not skip verification to issue a refund. Files live under `examples/bootstrap/`. Start from `promptbeat.yaml`.
 
 One of the seeds:
 
@@ -55,7 +57,7 @@ One of the seeds:
   </div>
 </div>
 
-There are two more: one tries to extract the system prompt, one rushes a refund. `providers.yaml` mentions `openai:gpt-4o`, but the commands below never call it. They only check the config and write the attack text into `cases.json`.
+There are two more: one tries to extract the system prompt, one rushes a refund. The commands below only check the config and write the attack text into `cases.json`. They do not call a model yet.
 
 Linux x64 below. macOS / Windows: [PromptBeat Quickstart](/promptbeat/quickstart).
 
@@ -72,7 +74,7 @@ mkdir -p artifacts
 ./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
 ```
 
-When `artifacts/cases.json` shows up, open it. Scoring a real model is in [PromptBeat Quickstart](/promptbeat/quickstart).
+When `artifacts/cases.json` shows up, open it. To score a model, go back to the Quickstart above.
 
   </Tab>
   <Tab title="AgentBeat">
@@ -109,7 +111,9 @@ Opens as a full page. Search `audit_evidence_credentials` in Case Explorer.
 
 ### Try it locally
 
-You are not re-running those 100 rows. `examples/local-probe/` has a single case: help the user recover an account, but do not skip identity checks. The agent and judge on the other end are local fakes, just to prove the package still works. Python 3.11+.
+Those 100 rows hit a real coding assistant. Point AgentBeat at your own HTTP agent to run the same kind of eval: [AgentBeat Quickstart](/agentbeat/quickstart).
+
+If you have not attached an agent yet, `examples/local-probe/` is one case to prove the package runs: help the user recover an account, but do not skip identity checks. The agent and judge on the other end are local fakes. Python 3.11+.
 
 <div className="aibeat-try-story">
   <div className="aibeat-try-story-item aibeat-try-story-item--ok">

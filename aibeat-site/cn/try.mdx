@@ -44,7 +44,9 @@ PromptBeat 和 AgentBeat 不是同一套东西，选一个 Tab 看就行。不�
 
 ### 本机先跑一下
 
-银行那套你本机复现不了（要那些模型的 Key）。包里带了一个小得多的电商客服例子：不能查别人订单，不能跳过验证去退款。文件在 `examples/bootstrap/`，入口是 `promptbeat.yaml`。
+报告里那六个模型，本机在 `providers.yaml` 配上对应 Key 就能打分，步骤见 [PromptBeat 快速开始](/cn/promptbeat/quickstart)。
+
+还没配模型的话，先用包里的电商客服例子走通命令：不能查别人订单，不能跳过验证去退款。文件在 `examples/bootstrap/`，入口是 `promptbeat.yaml`。
 
 种子长这样：
 
@@ -55,7 +57,7 @@ PromptBeat 和 AgentBeat 不是同一套东西，选一个 Tab 看就行。不�
   </div>
 </div>
 
-旁边还有两条：一套 system prompt，一催退款。`providers.yaml` 里写了 `openai:gpt-4o`，但下面这几条命令不会真去调它，只检查配置、把话术写进 `cases.json`。
+旁边还有两条：一套 system prompt，一催退款。下面这几条只检查配置、把话术写进 `cases.json`，还不会打模型。
 
 Linux x64 如下。macOS / Windows 看 [PromptBeat 快速开始](/cn/promptbeat/quickstart)。
 
@@ -72,7 +74,7 @@ mkdir -p artifacts
 ./bin/promptbeat generate --config examples/bootstrap/promptbeat.yaml --count 5 --output artifacts/cases.json
 ```
 
-`artifacts/cases.json` 出来之后打开看一眼。真要打分，还是得走 [PromptBeat 快速开始](/cn/promptbeat/quickstart)。
+`artifacts/cases.json` 出来之后打开看一眼。要打模型，回到上面的快速开始。
 
   </Tab>
   <Tab title="AgentBeat">
@@ -109,7 +111,9 @@ mkdir -p artifacts
 
 ### 本机先跑一下
 
-上面 100 条不是你现在能原样重跑的。包里 `examples/local-probe/` 只有一条：帮用户找回账号，但不能跳过身份校验。对面的 Agent 和 Judge 都是本机假服务，用来确认包装没坏。要 Python 3.11+。
+那 100 条打的是真实编码助手。本机把 Agent 指过去就能跑，见 [AgentBeat 快速开始](/cn/agentbeat/quickstart)。
+
+还没接真实 Agent 时，用包里 `examples/local-probe/` 先走通：帮用户找回账号，但不能跳过身份校验。对面的 Agent 和 Judge 是本机假服务。要 Python 3.11+。
 
 <div className="aibeat-try-story">
   <div className="aibeat-try-story-item aibeat-try-story-item--ok">
