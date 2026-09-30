@@ -5,6 +5,18 @@
     {
       "source": "/cn",
       "destination": "/cn/index"
+    },
+    {
+      "source": "/try",
+      "destination": "/try/index"
+    },
+    {
+      "source": "/cn/try",
+      "destination": "/cn/try/index"
+    },
+    {
+      "source": "/demos/:file",
+      "destination": "/downloads/:file"
     }
   ],
   "redirects": [
